@@ -1,6 +1,6 @@
 import sys
 from error import *
-from token import *
+from cstoken import *
 
 class Lexer():
     def __init__(self, text):
@@ -29,7 +29,7 @@ class Lexer():
     def get_next_token(self):
         while self.current_char and self.current_char.isspace():
             self.advance()
-            
+
         if not self.current_char:
             return Token(TokenType.EOF, None)
             

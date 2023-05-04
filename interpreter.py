@@ -1,7 +1,7 @@
 from error import *
-from token import *
+from cstoken import *
 from lexer import *
-from parser import *
+from csparser import *
 from semantic_analyzer import *
 
 from node_visitor import *

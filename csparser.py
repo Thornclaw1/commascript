@@ -1,6 +1,6 @@
 import sys
 from error import *
-from token import *
+from cstoken import *
 from lexer import *
 
 current_print_indent = 0

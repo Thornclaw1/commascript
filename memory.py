@@ -1,5 +1,5 @@
 from error import *
-from token import *
+from cstoken import *
 
 class Data(object):
     def __init__(self, value):

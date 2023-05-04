@@ -1,4 +1,4 @@
-from token import *
+from cstoken import *
 
 class Symbol():
     def __init__(self, params_num, value):
