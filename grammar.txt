@@ -1,0 +1,50 @@
+
+
+program : statement_list
+
+statement_list : statement (COMMA statement)*
+
+statement : var_decl
+          | var_set
+          | function_decl
+          | if_statement
+          | while_statement
+          | R conditional
+          | built_in_function
+
+var_decl : conditional
+
+var_set : S (PERIOD)* INT_CONST SET conditional
+
+function_decl : (INT_CONST)? COLON statement_list SEMI
+
+if_statement : QUESTION_MARK conditional COLON statement_list SEMI //Add else and else if
+
+while_statement : QUESTION_MARK QUESTION_MARK conditional COLON statement_list SEMI
+
+conditional : and_condition (OR and_condition)*
+
+and_condition : condition (AND condition)*
+
+condition : (NOT)? LPAREN conditional RPAREN
+          | expr ((EQUAL | NOT_EQUAL | LTHAN | GTHAN | LTHAN_OR_EQUAL | GTHAN_OR_EQUAL) expr)*
+
+expr : term ((PLUS | MINUS) term)*
+
+term : factor ((MUL | INT_DIV | FLOAT_DIV | MOD) factor)*
+
+// Add Exponents
+
+factor : PLUS factor
+       | MINUS factor
+       | INT_CONST
+       | FLOAT_CONST
+       | STR_CONST
+       | LPAREN conditional RPAREN
+       | variable
+       | built_in_function
+
+variable : M (PERIOD)* INT_CONST (LANGLE (conditional)? (COMMA conditional)* RANGLE)?
+
+built_in_function : P LANGLE conditional (COMMA conditional)* RANGLE
+                  | I LANGLE conditional RANGLE
