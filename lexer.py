@@ -27,6 +27,9 @@ class Lexer():
             return self.text[peek_pos]
 
     def get_next_token(self):
+        while self.current_char and self.current_char.isspace():
+            self.advance()
+            
         if not self.current_char:
             return Token(TokenType.EOF, None)
             
