@@ -189,7 +189,7 @@ class Parser():
         if self.current_token.type == TokenType.S:
             return self.var_set()
         if self.current_token.type in self._built_in_functions:
-            return self.built_in_function()
+            return self.built_in_function(allow_var_decl = True)
         return self.var_decl()
 
     def var_decl(self):
@@ -361,7 +361,7 @@ class Parser():
             self.eat(TokenType.RANGLE)
         return VarGet(scope_depth, mem_loc, args)
 
-    def built_in_function(self):
+    def built_in_function(self, allow_var_decl = False):
         if self.current_token.type == TokenType.P:
             self.eat(TokenType.P)
             self.eat(TokenType.LANGLE)
@@ -380,7 +380,8 @@ class Parser():
             if self.current_token.type != TokenType.RANGLE:
                 args.append(self.conditional())
             self.eat(TokenType.RANGLE)
-            return BuiltInFunction("I", args)
+            root = BuiltInFunction("I", args)
+            return VarDecl(0, root) if allow_var_decl else root
         
 
 
