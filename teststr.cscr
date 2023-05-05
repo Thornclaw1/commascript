@@ -1,1 +1,1 @@
-i<"Enter your name: ">,p<m0>
+i<"\033[34mEnter your name\n>>>">,p<m0>

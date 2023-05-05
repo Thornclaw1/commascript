@@ -1,4 +1,5 @@
 import random
+import codecs
 
 from error import *
 from cstoken import *
@@ -168,11 +169,11 @@ class Interpreter(NodeVisitor):
     def c_print(self, args):
         arg_vals = []
         for arg in args:
-            arg_vals.append(str(self.visit(arg)))
-        print(" ".join(arg_vals))
+            arg_vals.append(codecs.decode(str(self.visit(arg)), 'unicode_escape'))
+        print(*arg_vals)
 
     def c_input(self, args):
-        prompt = str(self.visit(args[0])) if len(args) > 0 else ""
+        prompt = codecs.decode(str(self.visit(args[0])), 'unicode_escape') if len(args) > 0 else ""
         return input(prompt)
 
     def c_random_int(self, args):
