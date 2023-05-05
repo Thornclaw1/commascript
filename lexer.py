@@ -12,19 +12,25 @@ class Lexer():
         s = f"Error on '{self.current_char}' column: {self.pos}"
         raise LexerError(message=s)
 
-    def advance(self):
-        self.pos += 1
+    def advance(self, amount = 1):
+        self.pos += amount
         if self.pos > len(self.text) - 1:
             self.current_char = None
         else:
             self.current_char = self.text[self.pos]
 
-    def peek(self):
-        peek_pos = self.pos + 1
+    def peek(self, peek_amount = 1):
+        peek_pos = self.pos + peek_amount
         if peek_pos > len(self.text) - 1:
             return None
         else:
             return self.text[peek_pos]
+
+    def check(self, string):
+        end_pos = self.pos + len(string)
+        if end_pos > len(self.text):
+            return False
+        return self.text[self.pos: end_pos].upper() == string.upper()
 
     def get_next_token(self):
         while self.current_char and self.current_char.isspace():
@@ -42,60 +48,95 @@ class Lexer():
         # if self.current_char.isalpha():
         #     return self.id()
         
-        if self.current_char == '/' and self.peek() == '/':
-            self.advance()
-            self.advance()
+        if self.check('//'):
+            self.advance(2)
             return Token(
                 TokenType.INT_DIV, 
                 TokenType.INT_DIV.value
             )
         
-        if self.current_char == '<' and self.peek() == '<':
-            self.advance()
-            self.advance()
-            return Token(
-                TokenType.LTHAN,
-                TokenType.LTHAN.value
-            )
-        
-        if self.current_char == '>' and self.peek() == '>':
-            self.advance()
-            self.advance()
-            return Token(
-                TokenType.GTHAN,
-                TokenType.GTHAN.value
-            )
-        
-        if self.current_char == '<' and self.peek() == '=':
-            self.advance()
-            self.advance()
+        if self.check('=-='):
+            self.advance(3)
             return Token(
                 TokenType.LTHAN_OR_EQUAL,
                 TokenType.LTHAN_OR_EQUAL.value
             )
         
-        if self.current_char == '>' and self.peek() == '=':
-            self.advance()
-            self.advance()
+        if self.check('=+='):
+            self.advance(3)
             return Token(
                 TokenType.GTHAN_OR_EQUAL,
                 TokenType.GTHAN_OR_EQUAL.value
             )
         
-        if self.current_char == '!' and self.peek() == '=':
-            self.advance()
-            self.advance()
+        if self.check('=-'):
+            self.advance(2)
+            return Token(
+                TokenType.LTHAN,
+                TokenType.LTHAN.value
+            )
+        
+        if self.check('=+'):
+            self.advance(2)
+            return Token(
+                TokenType.GTHAN,
+                TokenType.GTHAN.value
+            )
+        
+        if self.check('!='):
+            self.advance(2)
             return Token(
                 TokenType.NOT_EQUAL,
                 TokenType.NOT_EQUAL.value
             )
         
-        if self.current_char == '=' and self.peek() == '>':
-            self.advance()
-            self.advance()
+        if self.check('=>'):
+            self.advance(2)
             return Token(
-                TokenType.SET,
-                TokenType.SET.value
+                TokenType.SET_TO,
+                TokenType.SET_TO.value
+            )
+        
+        if self.check('??'):
+            self.advance(2)
+            return Token(
+                TokenType.WHILE,
+                TokenType.WHILE.value
+            )
+
+        if self.check('RND'):
+            self.advance(3)
+            return Token(
+                TokenType.RANDOM_INT,
+                TokenType.RANDOM_INT.value
+            )
+
+        if self.check('CS'):
+            self.advance(2)
+            return Token(
+                TokenType.CAST_STR,
+                TokenType.CAST_STR.value
+            )
+
+        if self.check('CI'):
+            self.advance(2)
+            return Token(
+                TokenType.CAST_INT,
+                TokenType.CAST_INT.value
+            )
+
+        if self.check('CF'):
+            self.advance(2)
+            return Token(
+                TokenType.CAST_FLOAT,
+                TokenType.CAST_FLOAT.value
+            )
+
+        if self.check('CB'):
+            self.advance(2)
+            return Token(
+                TokenType.CAST_BOOL,
+                TokenType.CAST_BOOL.value
             )
         
         try:

@@ -1,0 +1,9 @@
+"",
+"penguin",
+?? m0 != m1:
+    s.0 => i<"Guess an animal: ">,
+    ? m.0 != m.1:
+        p<"Correct!">
+    ;,
+;,
+p<"You're wrong lol get wrecked">

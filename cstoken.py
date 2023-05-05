@@ -1,23 +1,30 @@
 from enum import Enum
 
 class TokenType(Enum):
-    M = 'M' # Memory
-    S = 'S' # Set Var
-    R = 'R' # Return
-    I = 'I' # Input
-    P = 'P' # Print
-    QUESTION_MARK = '?' # If
+    MEMORY = 'M' # Memory
+    SET = 'S' # Set Var
+    RETURN = 'R' # Return
+    INPUT = 'I' # Input
+    PRINT = 'P' # Print
+    RANDOM_INT = 'RND'
+    CAST_STR = 'CS'
+    CAST_INT = 'CI'
+    CAST_FLOAT = 'CF'
+    CAST_BOOL = 'CB'
+    IF = '?'
+    ELSE = 'E'
+    WHILE = '??'
     # LCURLY = '{'
     # RCURLY = '}'
     LPAREN = '('
     RPAREN = ')'
     LANGLE = '<'
     RANGLE = '>'
-    SET = '=>'
-    LTHAN = '<<'
-    GTHAN = '>>'
-    LTHAN_OR_EQUAL = '<='
-    GTHAN_OR_EQUAL = '>='
+    SET_TO = '=>'
+    LTHAN = '=-'
+    GTHAN = '=+'
+    LTHAN_OR_EQUAL = '=-='
+    GTHAN_OR_EQUAL = '=+='
     EQUAL = '='
     NOT_EQUAL = '!='
     NOT = '!'

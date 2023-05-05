@@ -10,6 +10,15 @@ class SemanticAnalyzer(NodeVisitor):
     def __init__(self, display_debug_messages=False):
         super(SemanticAnalyzer, self).__init__(display_debug_messages)
         self.current_scope = None
+        self._function_param_nums = {
+            TokenType.PRINT : -1,
+            TokenType.INPUT : 1,
+            TokenType.RANDOM_INT : 2,
+            TokenType.CAST_STR : 1,
+            TokenType.CAST_INT : 1,
+            TokenType.CAST_FLOAT : 1,
+            TokenType.CAST_BOOL : 1
+        }
 
     def enter_scope(self, scope_name):
         self.log(f"ENTER scope: {scope_name}")
@@ -77,16 +86,24 @@ class SemanticAnalyzer(NodeVisitor):
             self.error(error_code=ErrorCode.ID_NOT_FOUND, token=node.mem_loc)
         if symbol.params_num != len(node.args):
             self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=f"{len(node.args)} {'was' if len(node.args) == 1 else 'were'} passed, but {symbol.params_num} {'was' if symbol.params_num == 1 else 'were'} expected")
+        for arg in node.args:
+            self.visit(arg)
 
     def visit_If(self, node):
         self.visit(node.conditional)
-        self.enter_scope("block")
+        self.enter_scope("if-block")
         self.visit(node.value)
         self.leave_scope()
+        if isinstance(node.else_value, If):
+            self.visit(node.else_value)
+        else:
+            self.enter_scope("else-block")
+            self.visit(node.else_value)
+            self.leave_scope()
 
     def visit_While(self, node):
         self.visit(node.conditional)
-        self.enter_scope("block")
+        self.enter_scope("while-block")
         self.visit(node.value)
         self.leave_scope()
 
@@ -94,6 +111,9 @@ class SemanticAnalyzer(NodeVisitor):
         self.visit(node.expr)
 
     def visit_BuiltInFunction(self, node):
+        func_param_num = self._function_param_nums[node.name]
+        if func_param_num != len(node.args) and func_param_num != -1:
+            self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=f"{len(node.args)} {'was' if len(node.args) == 1 else 'were'} passed, but {symbol.params_num} {'was' if symbol.params_num == 1 else 'were'} expected")
         for arg in node.args:
             self.visit(arg)
 

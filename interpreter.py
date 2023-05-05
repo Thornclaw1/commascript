@@ -1,3 +1,5 @@
+import random
+
 from error import *
 from cstoken import *
 from lexer import *
@@ -12,8 +14,13 @@ class Interpreter(NodeVisitor):
         super(Interpreter, self).__init__(display_debug_messages)
         self.current_scope = None
         self._built_in_functions = {
-            "P":self.c_print,
-            "I":self.c_input
+            TokenType.PRINT : self.c_print,
+            TokenType.INPUT : self.c_input,
+            TokenType.RANDOM_INT : self.c_random_int,
+            TokenType.CAST_STR : self.c_cast_str,
+            TokenType.CAST_INT : self.c_cast_int,
+            TokenType.CAST_FLOAT : self.c_cast_float,
+            TokenType.CAST_BOOL : self.c_cast_bool
         }
 
     def enter_scope(self, scope_name):
@@ -128,13 +135,20 @@ class Interpreter(NodeVisitor):
 
     def visit_If(self, node):
         if self.visit(node.conditional):
-            self.enter_scope("block")
+            self.enter_scope("if-block")
             self.visit(node.value)
             self.leave_scope()
+        else:
+            if isinstance(node.else_value, If):
+                self.visit(node.else_value)
+            else:
+                self.enter_scope("else-block")
+                self.visit(node.else_value)
+                self.leave_scope()
 
     def visit_While(self, node):
         while self.visit(node.conditional):
-            self.enter_scope("block")
+            self.enter_scope("while-block")
             self.visit(node.value)
             self.leave_scope()
 
@@ -160,6 +174,21 @@ class Interpreter(NodeVisitor):
     def c_input(self, args):
         prompt = str(self.visit(args[0])) if len(args) > 0 else ""
         return input(prompt)
+
+    def c_random_int(self, args):
+        return random.randint(self.visit(args[0]), self.visit(args[1]))
+
+    def c_cast_str(self, args):
+        return str(self.visit(args[0]))
+
+    def c_cast_int(self, args):
+        return int(self.visit(args[0]))
+
+    def c_cast_float(self, args):
+        return float(self.visit(args[0]))
+
+    def c_cast_bool(self, args):
+        return bool(self.visit(args[0]))
 
 
 if __name__ == "__main__":

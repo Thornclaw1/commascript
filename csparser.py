@@ -79,11 +79,12 @@ class VarGet(AST):
     __repr__ = __str__
 
 class If(AST):
-    def __init__(self, conditional, value):
+    def __init__(self, conditional, value, else_value):
         self.conditional = conditional
         self.value = value
+        self.else_value = else_value
     def __str__(self):
-        return f"If({self.conditional}, {self.value})"
+        return f"If({self.conditional}, {self.value}, {self.else_value})"
     __repr__ = __str__
 
 class While(AST):
@@ -116,7 +117,7 @@ class Parser():
         self.current_token = self.lexer.get_next_token()
         self.peeked_at_token = None
         self.display_debug_messages = display_debug_messages
-        self._built_in_functions = [TokenType.P, TokenType.I]
+        self._built_in_functions = [TokenType.PRINT, TokenType.INPUT]
 
     def error(self, error_code, token):
         raise ParserError(
@@ -178,15 +179,14 @@ class Parser():
     def statement(self):
         if self.current_token.type == TokenType.COLON or self.peek().type == TokenType.COLON:
             return self.function_decl()
-        if self.current_token.type == TokenType.QUESTION_MARK:
-            if self.peek().type == TokenType.QUESTION_MARK:
-                return self.while_statement()
-            else:
-                return self.if_statement()
-        if self.current_token.type == TokenType.R:
-            self.eat(TokenType.R)
+        if self.current_token.type == TokenType.IF:
+            return self.if_statement()
+        if self.current_token.type == TokenType.WHILE:
+            return self.while_statement()
+        if self.current_token.type == TokenType.RETURN:
+            self.eat(TokenType.RETURN)
             return Return(self.conditional())
-        if self.current_token.type == TokenType.S:
+        if self.current_token.type == TokenType.SET:
             return self.var_set()
         if self.current_token.type in self._built_in_functions:
             return self.built_in_function(allow_var_decl = True)
@@ -196,14 +196,14 @@ class Parser():
         return VarDecl(0, self.conditional())
 
     def var_set(self):
-        self.eat(TokenType.S)
+        self.eat(TokenType.SET)
         scope_depth = 0
         while self.current_token.type == TokenType.PERIOD:
             self.eat(TokenType.PERIOD)
             scope_depth += 1
         mem_loc = self.current_token.value
         self.eat(TokenType.INT_CONST)
-        self.eat(TokenType.SET)
+        self.eat(TokenType.SET_TO)
         return VarSet(scope_depth, mem_loc, self.conditional())
 
     def function_decl(self):
@@ -217,16 +217,24 @@ class Parser():
         return VarDecl(params_num, value)
 
     def if_statement(self):
-        self.eat(TokenType.QUESTION_MARK)
+        self.eat(TokenType.IF)
         conditional = self.conditional()
         self.eat(TokenType.COLON)
         value = self.statement_list()
         self.eat(TokenType.SEMI)
-        return If(conditional, value)
+        else_value = None
+        if self.current_token.type == TokenType.ELSE:
+            self.eat(TokenType.ELSE)
+            if self.current_token.type == TokenType.IF:
+                else_value = self.if_statement()
+            else:
+                self.eat(TokenType.COLON)
+                else_value = self.statement_list()
+                self.eat(TokenType.SEMI)
+        return If(conditional, value, else_value)
 
     def while_statement(self):
-        self.eat(TokenType.QUESTION_MARK)
-        self.eat(TokenType.QUESTION_MARK)
+        self.eat(TokenType.WHILE)
         conditional = self.conditional()
         self.eat(TokenType.COLON)
         value = self.statement_list()
@@ -337,13 +345,13 @@ class Parser():
             node = self.conditional()
             self.eat(TokenType.RPAREN)
             return node
-        elif token.type == TokenType.M:
+        elif token.type == TokenType.MEMORY:
             return self.variable()
         else:
             return self.built_in_function()
 
     def variable(self):
-        self.eat(TokenType.M)
+        self.eat(TokenType.MEMORY)
         scope_depth = 0
         while self.current_token.type == TokenType.PERIOD:
             self.eat(TokenType.PERIOD)
@@ -362,27 +370,33 @@ class Parser():
         return VarGet(scope_depth, mem_loc, args)
 
     def built_in_function(self, allow_var_decl = False):
-        if self.current_token.type == TokenType.P:
-            self.eat(TokenType.P)
-            self.eat(TokenType.LANGLE)
-            args = []
-            if self.current_token.type != TokenType.RANGLE:
+        token = self.current_token
+        if token.type in (
+            TokenType.PRINT, 
+            TokenType.INPUT, 
+            TokenType.RANDOM_INT,
+            TokenType.CAST_STR,
+            TokenType.CAST_INT,
+            TokenType.CAST_FLOAT,
+            TokenType.CAST_BOOL):
+            self.eat(token.type)
+        else:
+            self.error(ErrorCode.UNEXPECTED_TOKEN, self.current_token)
+
+        if token.type in (TokenType.PRINT,):
+            allow_var_decl = False
+
+        self.eat(TokenType.LANGLE)
+        args = []
+        if self.current_token.type != TokenType.RANGLE:
+            args.append(self.conditional())
+            while self.current_token.type == TokenType.COMMA:
+                self.eat(TokenType.COMMA)
                 args.append(self.conditional())
-                while self.current_token.type == TokenType.COMMA:
-                    self.eat(TokenType.COMMA)
-                    args.append(self.conditional())
-            self.eat(TokenType.RANGLE)
-            return BuiltInFunction("P", args)
-        if self.current_token.type == TokenType.I:
-            self.eat(TokenType.I)
-            self.eat(TokenType.LANGLE)
-            args = []
-            if self.current_token.type != TokenType.RANGLE:
-                args.append(self.conditional())
-            self.eat(TokenType.RANGLE)
-            root = BuiltInFunction("I", args)
-            return VarDecl(0, root) if allow_var_decl else root
-        
+        self.eat(TokenType.RANGLE)
+
+        root = BuiltInFunction(token.type, args)
+        return VarDecl(0, root) if allow_var_decl else root
 
 
 if __name__ == "__main__":

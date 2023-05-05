@@ -9,18 +9,18 @@ statement : var_decl
           | function_decl
           | if_statement
           | while_statement
-          | R conditional
+          | RETURN conditional
           | built_in_function
 
 var_decl : conditional
 
-var_set : S (PERIOD)* INT_CONST SET conditional
+var_set : SET (PERIOD)* INT_CONST SET_TO conditional
 
 function_decl : (INT_CONST)? COLON statement_list SEMI
 
-if_statement : QUESTION_MARK conditional COLON statement_list SEMI //Add else and else if
+if_statement : IF conditional COLON statement_list SEMI (ELSE (if_statement | COLON statement_list SEMI))?
 
-while_statement : QUESTION_MARK QUESTION_MARK conditional COLON statement_list SEMI
+while_statement : WHILE conditional COLON statement_list SEMI
 
 conditional : and_condition (OR and_condition)*
 
@@ -44,7 +44,12 @@ factor : PLUS factor
        | variable
        | built_in_function
 
-variable : M (PERIOD)* INT_CONST (LANGLE (conditional)? (COMMA conditional)* RANGLE)?
+variable : MEMORY (PERIOD)* INT_CONST (LANGLE (conditional)? (COMMA conditional)* RANGLE)?
 
-built_in_function : P LANGLE conditional (COMMA conditional)* RANGLE
-                  | I LANGLE conditional RANGLE
+built_in_function : PRINT LANGLE conditional (COMMA conditional)* RANGLE
+                  | INPUT LANGLE conditional RANGLE
+                  | RANDOM_INT LANGLE conditional COMMA conditional RANGLE
+                  | CS LANGLE conditional RANGLE
+                  | CI LANGLE conditional RANGLE
+                  | CF LANGLE conditional RANGLE
+                  | CB LANGLE conditional RANGLE
