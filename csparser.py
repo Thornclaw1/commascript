@@ -159,7 +159,7 @@ class Parser():
     def program(self):
         if self.current_token.type == TokenType.EOF:
             const = Const(Token(TokenType.STR_CONST, "Hello World!", 2))
-            built_in_function = BuiltInFunction("P",[const])
+            built_in_function = BuiltInFunction(TokenType.PRINT,[const])
             var_set = VarDecl(0, built_in_function)
             statement_list_node = StatementList()
             statement_list_node.children.append(var_set)
