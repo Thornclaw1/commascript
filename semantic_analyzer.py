@@ -89,6 +89,9 @@ class SemanticAnalyzer(NodeVisitor):
         for arg in node.args:
             self.visit(arg)
 
+    def visit_Not(self, node):
+        self.visit(node.value)
+
     def visit_If(self, node):
         self.visit(node.conditional)
         self.enter_scope("if-block")

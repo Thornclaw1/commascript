@@ -26,7 +26,7 @@ conditional : and_condition (OR and_condition)*
 
 and_condition : condition (AND condition)*
 
-condition : (NOT)? LPAREN conditional RPAREN
+condition : (NOT)? LANGLE conditional RANGLE
           | expr ((EQUAL | NOT_EQUAL | LTHAN | GTHAN | LTHAN_OR_EQUAL | GTHAN_OR_EQUAL) expr)*
 
 expr : term ((PLUS | MINUS) term)*
@@ -40,7 +40,8 @@ factor : PLUS factor
        | INT_CONST
        | FLOAT_CONST
        | STR_CONST
-       | LPAREN conditional RPAREN
+       | BOOL_CONST
+       | LANGLE conditional RANGLE
        | variable
        | built_in_function
 

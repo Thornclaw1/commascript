@@ -16,8 +16,10 @@ class TokenType(Enum):
     WHILE = '??'
     # LCURLY = '{'
     # RCURLY = '}'
-    LPAREN = '('
-    RPAREN = ')'
+    # LBRACKET = '['
+    # RBRACKET = ']'
+    # LPAREN = '('
+    # RPAREN = ')'
     LANGLE = '<'
     RANGLE = '>'
     SET_TO = '=>'
@@ -43,6 +45,7 @@ class TokenType(Enum):
     INT_CONST = 'INT_CONST'
     FLOAT_CONST = 'FLOAT_CONST'
     STR_CONST = 'STR_CONST'
+    BOOL_CONST = 'BOOL_CONST'
     EOF = 'EOF'
 
 # def _build_reserved_keywords():

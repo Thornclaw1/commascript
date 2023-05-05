@@ -78,6 +78,12 @@ class VarGet(AST):
         return f"VarGet(m{'<'*self.scope_depth}{self.mem_loc}, {self.args})"
     __repr__ = __str__
 
+class Not(AST):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return f"Not({self.value})"
+
 class If(AST):
     def __init__(self, conditional, value, else_value):
         self.conditional = conditional
@@ -262,11 +268,15 @@ class Parser():
         return node
 
     def condition(self):
+        invert_result = False
         if self.current_token.type == TokenType.NOT:
             self.eat(TokenType.NOT)
-            self.conditional()
-        if self.current_token.type == TokenType.LPAREN:
-            self.conditional()
+            invert_result = True
+        if self.current_token.type == TokenType.LANGLE:
+            self.eat(TokenType.LANGLE)
+            node = self.conditional()
+            self.eat(TokenType.RANGLE)
+            return Not(node) if invert_result else node
         else:
             node = self.expr()
 
@@ -287,7 +297,7 @@ class Parser():
 
                 node = BinOp(left = node, op = token, right = self.expr())
 
-            return node
+            return Not(node) if invert_result else node
 
     def expr(self):
         node = self.term()
@@ -340,10 +350,13 @@ class Parser():
         elif token.type == TokenType.STR_CONST:
             self.eat(TokenType.STR_CONST)
             return Const(token)
-        elif token.type == TokenType.LPAREN:
-            self.eat(TokenType.LPAREN)
+        elif token.type == TokenType.BOOL_CONST:
+            self.eat(TokenType.BOOL_CONST)
+            return Const(token)
+        elif token.type == TokenType.LANGLE:
+            self.eat(TokenType.LANGLE)
             node = self.conditional()
-            self.eat(TokenType.RPAREN)
+            self.eat(TokenType.RANGLE)
             return node
         elif token.type == TokenType.MEMORY:
             return self.variable()

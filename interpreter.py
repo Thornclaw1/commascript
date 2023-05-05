@@ -134,6 +134,9 @@ class Interpreter(NodeVisitor):
         else:
             return value
 
+    def visit_Not(self, node):
+        return not self.visit(node.value)
+
     def visit_If(self, node):
         if self.visit(node.conditional):
             self.enter_scope("if-block")
