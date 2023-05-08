@@ -31,9 +31,9 @@ condition : (NOT)? LANGLE conditional RANGLE
 
 expr : term ((PLUS | MINUS) term)*
 
-term : factor ((MUL | INT_DIV | FLOAT_DIV | MOD) factor)*
+term : expo ((MUL | INT_DIV | FLOAT_DIV | MOD) expo)*
 
-// Add Exponents
+expo : factor ((EXPO) factor)*
 
 factor : PLUS factor
        | MINUS factor

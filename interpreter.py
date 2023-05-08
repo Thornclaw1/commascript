@@ -69,6 +69,8 @@ class Interpreter(NodeVisitor):
             return left - right
         elif op_type == TokenType.MUL:
             return left * right
+        elif op_type == TokenType.EXPO:
+            return left ** right
         elif op_type == TokenType.INT_DIV:
             return left // right
         elif op_type == TokenType.FLOAT_DIV:

@@ -314,7 +314,7 @@ class Parser():
         return node   
 
     def term(self):
-        node = self.factor()
+        node = self.expo()
 
         while self.current_token.type in (TokenType.MUL, TokenType.INT_DIV, TokenType.FLOAT_DIV, TokenType.MOD):
             token = self.current_token
@@ -327,6 +327,16 @@ class Parser():
             elif token.type == TokenType.MOD:
                 self.eat(TokenType.MOD)
             
+            node = BinOp(left=node, op=token, right=self.expo())
+
+        return node
+
+    def expo(self):
+        node = self.factor()
+
+        while self.current_token.type == TokenType.EXPO:
+            token = self.current_token
+            self.eat(TokenType.EXPO)
             node = BinOp(left=node, op=token, right=self.factor())
 
         return node

@@ -58,6 +58,13 @@ class Lexer():
 
             # if self.current_char.isalpha():
             #     return self.id()
+
+            if self.check('**'):
+                self.advance(2)
+                return Token(
+                    TokenType.EXPO,
+                    TokenType.EXPO.value
+                )
             
             if self.check('//'):
                 self.advance(2)

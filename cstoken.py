@@ -39,6 +39,7 @@ class TokenType(Enum):
     PLUS = '+'
     MINUS = '-'
     MUL = '*'
+    EXPO = '**'
     INT_DIV = '//'
     FLOAT_DIV = '/'
     MOD = "%"
