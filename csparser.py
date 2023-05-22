@@ -1,7 +1,11 @@
 import sys
+import ast
+import inspect
+
 from error import *
 from cstoken import *
 from lexer import *
+from built_in_functions import *
 
 current_print_indent = 0
 
@@ -223,7 +227,7 @@ class Parser():
         if self.current_token.type == TokenType.SET:
             return self.var_set()
         if self.current_token.type == TokenType.FUNCTION:
-            return self.built_in_function()
+            return self.built_in_function(allow_var_decl=True)
         if self.current_token.type == TokenType.SET_TO:
             self.eat(TokenType.SET_TO)
             return self.var_decl()
@@ -425,7 +429,10 @@ class Parser():
             self.eat(TokenType.RANGLE)
         return VarGet(scope_depth, mem_loc, args)
 
-    def built_in_function(self):
+    def built_in_function(self, allow_var_decl=False):
+        def contains_return(f):
+            return any(isinstance(node, ast.Return) for node in ast.walk(ast.parse(inspect.getsource(f))))
+
         token = self.current_token
         self.eat(TokenType.FUNCTION)
 
@@ -438,7 +445,11 @@ class Parser():
                 args.append(self.conditional())
         self.eat(TokenType.RANGLE)
 
-        return BuiltInFunction(token.value, args)
+        node = BuiltInFunction(token.value, args)
+
+        if allow_var_decl and contains_return(globals()["cs_" + token.value]):
+            return VarDecl(0, node)
+        return node
 
 
 if __name__ == "__main__":
