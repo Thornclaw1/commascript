@@ -1,6 +1,3 @@
-import random
-import codecs
-
 from error import *
 from cstoken import *
 from lexer import *
@@ -9,20 +6,13 @@ from semantic_analyzer import *
 
 from node_visitor import *
 from memory import *
+from built_in_functions import *
+
 
 class Interpreter(NodeVisitor):
     def __init__(self, display_debug_messages=False):
         super(Interpreter, self).__init__(display_debug_messages)
         self.current_scope = None
-        self._built_in_functions = {
-            TokenType.PRINT : self.c_print,
-            TokenType.INPUT : self.c_input,
-            TokenType.RANDOM_INT : self.c_random_int,
-            TokenType.CAST_STR : self.c_cast_str,
-            TokenType.CAST_INT : self.c_cast_int,
-            TokenType.CAST_FLOAT : self.c_cast_float,
-            TokenType.CAST_BOOL : self.c_cast_bool
-        }
 
     def enter_scope(self, scope_name):
         self.log(f"ENTER scope: {scope_name}")
@@ -127,7 +117,7 @@ class Interpreter(NodeVisitor):
                 arg_value = self.visit(arg)
                 data = Data(arg_value)
                 self.current_scope.insert(data)
-            for child in value.children:        
+            for child in value.children:
                 return_val = self.visit(child)
                 if return_val:
                     break
@@ -162,39 +152,12 @@ class Interpreter(NodeVisitor):
         return self.visit(node.expr)
 
     def visit_BuiltInFunction(self, node):
-        return self._built_in_functions[node.name](node.args)
+        function_name = 'cs_' + node.name
+        function = globals()[function_name]
+        return function(self, node.args)
 
     def visit_NoneType(self, node):
         pass
-
-    """
-    BUILT-IN FUNCTIONS
-    """
-
-    def c_print(self, args):
-        arg_vals = []
-        for arg in args:
-            arg_vals.append(codecs.decode(str(self.visit(arg)), 'unicode_escape'))
-        print(*arg_vals)
-
-    def c_input(self, args):
-        prompt = codecs.decode(str(self.visit(args[0])), 'unicode_escape') if len(args) > 0 else ""
-        return input(prompt)
-
-    def c_random_int(self, args):
-        return random.randint(self.visit(args[0]), self.visit(args[1]))
-
-    def c_cast_str(self, args):
-        return str(self.visit(args[0]))
-
-    def c_cast_int(self, args):
-        return int(self.visit(args[0]))
-
-    def c_cast_float(self, args):
-        return float(self.visit(args[0]))
-
-    def c_cast_bool(self, args):
-        return bool(self.visit(args[0]))
 
 
 if __name__ == "__main__":
@@ -209,7 +172,7 @@ if __name__ == "__main__":
         debug_messages = False
         if len(sys.argv) > 2 and sys.argv[2] == "--debug":
             debug_messages = True
-        
+
         if debug_messages:
             h = " Parser "
             print(f"\n{'-'*len(h)}\n{h}\n{'-'*len(h)}\n")

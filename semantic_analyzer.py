@@ -5,20 +5,13 @@ from csparser import *
 
 from node_visitor import *
 from symbol_table import *
+from built_in_functions import *
+
 
 class SemanticAnalyzer(NodeVisitor):
     def __init__(self, display_debug_messages=False):
         super(SemanticAnalyzer, self).__init__(display_debug_messages)
         self.current_scope = None
-        self._function_param_nums = {
-            TokenType.PRINT : -1,
-            TokenType.INPUT : 1,
-            TokenType.RANDOM_INT : 2,
-            TokenType.CAST_STR : 1,
-            TokenType.CAST_INT : 1,
-            TokenType.CAST_FLOAT : 1,
-            TokenType.CAST_BOOL : 1
-        }
 
     def enter_scope(self, scope_name):
         self.log(f"ENTER scope: {scope_name}")
@@ -114,9 +107,12 @@ class SemanticAnalyzer(NodeVisitor):
         self.visit(node.expr)
 
     def visit_BuiltInFunction(self, node):
-        func_param_num = self._function_param_nums[node.name]
-        if func_param_num != len(node.args) and func_param_num != -1:
-            self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=f"{len(node.args)} {'was' if len(node.args) == 1 else 'were'} passed, but {symbol.params_num} {'was' if symbol.params_num == 1 else 'were'} expected")
+        function_name = 'cs_' + node.name + '_arg_validation'
+        function = globals()[function_name]
+        valid_arguments = function(self, node.args)
+        if not valid_arguments:
+            self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=f'Invalid arguments for function {node.name}')
+
         for arg in node.args:
             self.visit(arg)
 

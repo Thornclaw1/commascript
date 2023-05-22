@@ -9,8 +9,9 @@ statement : var_decl
           | function_decl
           | if_statement
           | while_statement
-          | RETURN conditional
+          | RETURN LANGLE conditional RANGLE
           | built_in_function
+          | SET_TO conditional
 
 var_decl : conditional
 
@@ -47,10 +48,4 @@ factor : PLUS factor
 
 variable : MEMORY (PERIOD)* INT_CONST (LANGLE (conditional)? (COMMA conditional)* RANGLE)?
 
-built_in_function : PRINT LANGLE conditional (COMMA conditional)* RANGLE
-                  | INPUT LANGLE conditional RANGLE
-                  | RANDOM_INT LANGLE conditional COMMA conditional RANGLE
-                  | CS LANGLE conditional RANGLE
-                  | CI LANGLE conditional RANGLE
-                  | CF LANGLE conditional RANGLE
-                  | CB LANGLE conditional RANGLE
+built_in_function : FUNCTION LANGLE conditional (COMMA conditional)* RANGLE
