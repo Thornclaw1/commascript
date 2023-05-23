@@ -29,11 +29,11 @@ class Interpreter(NodeVisitor):
         self.log(f'LEAVE scope: {self.current_scope.scope_name}')
         self.current_scope = self.current_scope.enclosing_scope
 
-    def error(self, error_code, token):
+    def error(self, error_code, token, message=''):
         raise InterpreterError(
             error_code=error_code,
             token=token,
-            message=f'{error_code.value} -> {token}'
+            message=f'{error_code.value} -> Line: {token.line}, Column: {token.column}\n{message}'
         )
 
     def log(self, msg):
@@ -43,7 +43,9 @@ class Interpreter(NodeVisitor):
     def visit_Program(self, node):
         self.enter_scope("global")
         self.visit(node.statement_list_node)
+        global_scope = self.current_scope
         self.leave_scope()
+        return global_scope
 
     def visit_StatementList(self, node):
         for child in node.children:
@@ -125,6 +127,21 @@ class Interpreter(NodeVisitor):
             return return_val
         else:
             return value
+
+    def visit_Import(self, node):
+        with open(node.file_path + ".cscr") as file:
+            lexer = Lexer(file.read())
+        parser = Parser(lexer)
+        tree = parser.parse()
+        self.current_scope.add_sibling_scope(self.visit(tree))
+
+    def visit_ModuleGet(self, node):
+        module = self.current_scope.get_sibling_scope(node.scope_depth, node.mem_loc)
+        current_scope = self.current_scope
+        self.current_scope = module
+        value = self.visit(node.var_node)
+        self.current_scope = current_scope
+        return value
 
     def visit_Not(self, node):
         return not self.visit(node.value)

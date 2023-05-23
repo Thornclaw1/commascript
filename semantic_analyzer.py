@@ -24,15 +24,15 @@ class SemanticAnalyzer(NodeVisitor):
         self.current_scope = scoped_symbol_table
 
     def leave_scope(self):
-        self.log(self.current_scope)
         self.log(f'LEAVE scope: {self.current_scope.scope_name}')
+        self.log(self.current_scope)
         self.current_scope = self.current_scope.enclosing_scope
 
-    def error(self, error_code, token):
+    def error(self, error_code, token, message=''):
         raise SemanticError(
             error_code=error_code,
             token=token,
-            message=f'{error_code.value} -> {token}'
+            message=f'{error_code.value} -> Line: {token.line}, Column: {token.column}\n{message}'
         )
 
     def log(self, msg):
@@ -42,7 +42,9 @@ class SemanticAnalyzer(NodeVisitor):
     def visit_Program(self, node):
         self.enter_scope("global")
         self.visit(node.statement_list_node)
+        global_scope = self.current_scope
         self.leave_scope()
+        return global_scope
 
     def visit_StatementList(self, node):
         for child in node.children:
@@ -76,11 +78,29 @@ class SemanticAnalyzer(NodeVisitor):
     def visit_VarGet(self, node):
         symbol = self.current_scope.lookup(node.scope_depth, node.mem_loc)
         if not symbol:
-            self.error(error_code=ErrorCode.ID_NOT_FOUND, token=node.mem_loc)
+            self.error(error_code=ErrorCode.ID_NOT_FOUND, token=node.token, message=f"m{'.'*node.scope_depth}{node.mem_loc} does not exist")
         if symbol.params_num != len(node.args):
-            self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=f"{len(node.args)} {'was' if len(node.args) == 1 else 'were'} passed, but {symbol.params_num} {'was' if symbol.params_num == 1 else 'were'} expected")
+            self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=node.token, message=f"{len(node.args)} {'was' if len(node.args) == 1 else 'were'} passed, but {symbol.params_num} {'was' if symbol.params_num == 1 else 'were'} expected")
         for arg in node.args:
             self.visit(arg)
+
+    def visit_Import(self, node):
+        file_path = node.file_path + ".cscr"
+        try:
+            with open(file_path) as file:
+                lexer = Lexer(file.read())
+        except:
+            self.error(error_code=ErrorCode.FILE_NOT_FOUND, token=node.token, message=file_path)
+        parser = Parser(lexer)
+        tree = parser.parse()
+        self.current_scope.add_sibling_scope(self.visit(tree))
+
+    def visit_ModuleGet(self, node):
+        module = self.current_scope.get_sibling_scope(node.scope_depth, node.mem_loc)
+        current_scope = self.current_scope
+        self.current_scope = module
+        self.visit(node.var_node)
+        self.current_scope = current_scope
 
     def visit_Not(self, node):
         self.visit(node.value)
@@ -111,7 +131,7 @@ class SemanticAnalyzer(NodeVisitor):
         function = globals()[function_name]
         valid_arguments = function(self, node.args)
         if not valid_arguments:
-            self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=f'Invalid arguments for function {node.name}')
+            self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=node.token, message=f'Invalid arguments for function {node.name}')
 
         for arg in node.args:
             self.visit(arg)

@@ -12,6 +12,7 @@ statement : var_decl
           | RETURN LANGLE conditional RANGLE
           | built_in_function
           | SET_TO conditional
+          | IMPORT STR_CONST
 
 var_decl : conditional
 
@@ -44,8 +45,11 @@ factor : PLUS factor
        | BOOL_CONST
        | LANGLE conditional RANGLE
        | variable
+       | module
        | built_in_function
 
 variable : MEMORY (PERIOD)* INT_CONST (LANGLE (conditional)? (COMMA conditional)* RANGLE)?
+
+module : MODULE (PERIOD)* INT_CONST variable
 
 built_in_function : FUNCTION LANGLE conditional (COMMA conditional)* RANGLE

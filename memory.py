@@ -1,6 +1,7 @@
 from error import *
 from cstoken import *
 
+
 class Data(object):
     def __init__(self, value):
         self.value = value
@@ -18,6 +19,7 @@ class Memory(object):
         self.scope_level = scope_level
         self.enclosing_scope = enclosing_scope
         self.display_debug_messages = display_debug_messages
+        self.sibling_scopes = []
 
     def __str__(self):
         h1 = 'SCOPED MEMORY TABLE'
@@ -27,7 +29,7 @@ class Memory(object):
             ('Scope level', self.scope_level),
             ('Enclosing scope',
                 self.enclosing_scope.scope_name if self.enclosing_scope else None
-            )
+             )
         ):
             lines.append('%-15s: %s' % (header_name, header_value))
         h2 = 'Memory contents'
@@ -70,4 +72,16 @@ class Memory(object):
                 self.enclosing_scope.set(scope_depth - 1, mem_loc, value)
         elif mem_loc < len(self._memory):
             self._memory[mem_loc].value = value
-            
+
+    def add_sibling_scope(self, scope):
+        self.log(f"Add Module: {len(self.sibling_scopes)}")
+        self.sibling_scopes.append(scope)
+
+    def get_sibling_scope(self, scope_depth, mem_loc):
+        self.log(f'Get Module: {mem_loc}')
+        if scope_depth > 0:
+            if self.enclosing_scope is not None:
+                return self.enclosing_scope.get_sibling_scope(scope_depth - 1, mem_loc)
+            return None
+        if mem_loc < len(self.sibling_scopes):
+            return self.sibling_scopes[mem_loc]

@@ -80,7 +80,8 @@ class VarDecl(AST):
 
 
 class VarSet(AST):
-    def __init__(self, scope_depth, mem_loc, value):
+    def __init__(self, token, scope_depth, mem_loc, value):
+        self.token = token
         self.scope_depth = scope_depth
         self.mem_loc = mem_loc
         self.value = value
@@ -90,7 +91,8 @@ class VarSet(AST):
 
 
 class VarGet(AST):
-    def __init__(self, scope_depth, mem_loc, args):
+    def __init__(self, token, scope_depth, mem_loc, args):
+        self.token = token
         self.scope_depth = scope_depth
         self.mem_loc = mem_loc
         self.args = args
@@ -100,8 +102,31 @@ class VarGet(AST):
     __repr__ = __str__
 
 
+class Import(AST):
+    def __init__(self, token, file_path):
+        self.token = token
+        self.file_path = file_path
+
+    def __str__(self):
+        return f"Import({self.file_path})"
+    __repr__ = __str__
+
+
+class ModuleGet(AST):
+    def __init__(self, token, scope_depth, mem_loc, var_node):
+        self.token = token
+        self.scope_depth = scope_depth
+        self.mem_loc = mem_loc
+        self.var_node = var_node
+
+    def __str__(self):
+        return f"ModuleGet({'.'*self.scope_depth}{self.mem_loc}, {self.var_node})"
+    __repr__ = __str__
+
+
 class Not(AST):
-    def __init__(self, value):
+    def __init__(self, token, value):
+        self.token = token
         self.value = value
 
     def __str__(self):
@@ -109,7 +134,8 @@ class Not(AST):
 
 
 class If(AST):
-    def __init__(self, conditional, value, else_value):
+    def __init__(self, token, conditional, value, else_value):
+        self.token = token
         self.conditional = conditional
         self.value = value
         self.else_value = else_value
@@ -120,7 +146,8 @@ class If(AST):
 
 
 class While(AST):
-    def __init__(self, conditional, value):
+    def __init__(self, token, conditional, value):
+        self.token = token
         self.conditional = conditional
         self.value = value
 
@@ -130,7 +157,8 @@ class While(AST):
 
 
 class Return(AST):
-    def __init__(self, expr):
+    def __init__(self, token, expr):
+        self.token = token
         self.expr = expr
 
     def __str__(self):
@@ -139,8 +167,9 @@ class Return(AST):
 
 
 class BuiltInFunction(AST):
-    def __init__(self, name, args):
-        self.name = name
+    def __init__(self, token, args):
+        self.token = token
+        self.name = token.value
         self.args = args
 
     def __str__(self):
@@ -193,8 +222,9 @@ class Parser():
 
     def program(self):
         if self.current_token.type == TokenType.EOF:
-            const = Const(Token(TokenType.STR_CONST, "Hello World!", 2))
-            built_in_function = BuiltInFunction('P', [const])
+            token = Token(TokenType.FUNCTION, 'P')
+            const = Const(Token(TokenType.STR_CONST, "Hello World!"))
+            built_in_function = BuiltInFunction(token, [const])
             var_set = VarDecl(0, built_in_function)
             statement_list_node = StatementList()
             statement_list_node.children.append(var_set)
@@ -212,23 +242,29 @@ class Parser():
         return root
 
     def statement(self):
-        if self.current_token.type == TokenType.COLON or self.peek().type == TokenType.COLON:
+        token = self.current_token
+        if token.type == TokenType.COLON or self.peek().type == TokenType.COLON:
             return self.function_decl()
-        if self.current_token.type == TokenType.IF:
+        if token.type == TokenType.IF:
             return self.if_statement()
-        if self.current_token.type == TokenType.WHILE:
+        if token.type == TokenType.WHILE:
             return self.while_statement()
-        if self.current_token.type == TokenType.RETURN:
+        if token.type == TokenType.RETURN:
             self.eat(TokenType.RETURN)
             self.eat(TokenType.LANGLE)
-            node = Return(self.conditional())
+            node = Return(token, self.conditional())
             self.eat(TokenType.RANGLE)
             return node
-        if self.current_token.type == TokenType.SET:
+        if token.type == TokenType.IMPORT:
+            self.eat(TokenType.IMPORT)
+            node = Import(token, self.current_token.value)
+            self.eat(TokenType.STR_CONST)
+            return node
+        if token.type == TokenType.SET:
             return self.var_set()
-        if self.current_token.type == TokenType.FUNCTION:
+        if token.type == TokenType.FUNCTION:
             return self.built_in_function(allow_var_decl=True)
-        if self.current_token.type == TokenType.SET_TO:
+        if token.type == TokenType.SET_TO:
             self.eat(TokenType.SET_TO)
             return self.var_decl()
         return self.var_decl()
@@ -237,6 +273,7 @@ class Parser():
         return VarDecl(0, self.conditional())
 
     def var_set(self):
+        token = self.current_token
         self.eat(TokenType.SET)
         scope_depth = 0
         while self.current_token.type == TokenType.PERIOD:
@@ -245,7 +282,7 @@ class Parser():
         mem_loc = self.current_token.value
         self.eat(TokenType.INT_CONST)
         self.eat(TokenType.SET_TO)
-        return VarSet(scope_depth, mem_loc, self.conditional())
+        return VarSet(token, scope_depth, mem_loc, self.conditional())
 
     def function_decl(self):
         params_num = 0
@@ -258,6 +295,7 @@ class Parser():
         return VarDecl(params_num, value)
 
     def if_statement(self):
+        token = self.current_token
         self.eat(TokenType.IF)
         conditional = self.conditional()
         self.eat(TokenType.COLON)
@@ -272,15 +310,16 @@ class Parser():
                 self.eat(TokenType.COLON)
                 else_value = self.statement_list()
                 self.eat(TokenType.SEMI)
-        return If(conditional, value, else_value)
+        return If(token, conditional, value, else_value)
 
     def while_statement(self):
+        token = self.current_token
         self.eat(TokenType.WHILE)
         conditional = self.conditional()
         self.eat(TokenType.COLON)
         value = self.statement_list()
         self.eat(TokenType.SEMI)
-        return While(conditional, value)
+        return While(token, conditional, value)
 
     def conditional(self):
         node = self.and_condition()
@@ -305,13 +344,14 @@ class Parser():
     def condition(self):
         invert_result = False
         if self.current_token.type == TokenType.NOT:
+            not_token = self.current_token
             self.eat(TokenType.NOT)
             invert_result = True
         if self.current_token.type == TokenType.LANGLE:
             self.eat(TokenType.LANGLE)
             node = self.conditional()
             self.eat(TokenType.RANGLE)
-            return Not(node) if invert_result else node
+            return Not(not_token, node) if invert_result else node
         else:
             node = self.expr()
 
@@ -332,7 +372,7 @@ class Parser():
 
                 node = BinOp(left=node, op=token, right=self.expr())
 
-            return Not(node) if invert_result else node
+            return Not(not_token, node) if invert_result else node
 
     def expr(self):
         node = self.term()
@@ -405,12 +445,15 @@ class Parser():
             return node
         elif token.type == TokenType.MEMORY:
             return self.variable()
+        elif token.type == TokenType.MODULE:
+            return self.module()
         elif token.type == TokenType.FUNCTION:
             return self.built_in_function()
         else:
             self.error(ErrorCode.UNEXPECTED_TOKEN, self.current_token)
 
     def variable(self):
+        token = self.current_token
         self.eat(TokenType.MEMORY)
         scope_depth = 0
         while self.current_token.type == TokenType.PERIOD:
@@ -427,7 +470,19 @@ class Parser():
                 self.eat(TokenType.COMMA)
                 args.append(self.conditional())
             self.eat(TokenType.RANGLE)
-        return VarGet(scope_depth, mem_loc, args)
+        return VarGet(token, scope_depth, mem_loc, args)
+
+    def module(self):
+        token = self.current_token
+        self.eat(TokenType.MODULE)
+        scope_depth = 0
+        while self.current_token.type == TokenType.PERIOD:
+            self.eat(TokenType.PERIOD)
+            scope_depth += 1
+        mem_loc = self.current_token.value
+        self.eat(TokenType.INT_CONST)
+        var = self.variable()
+        return ModuleGet(token, scope_depth, mem_loc, var)
 
     def built_in_function(self, allow_var_decl=False):
         def contains_return(f):
@@ -445,7 +500,7 @@ class Parser():
                 args.append(self.conditional())
         self.eat(TokenType.RANGLE)
 
-        node = BuiltInFunction(token.value, args)
+        node = BuiltInFunction(token, args)
 
         if allow_var_decl and contains_return(globals()["cs_" + token.value]):
             return VarDecl(0, node)

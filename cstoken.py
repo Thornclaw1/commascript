@@ -8,6 +8,8 @@ class TokenType(Enum):
     IF = '?'
     ELSE = 'E'
     WHILE = '??'
+    IMPORT = '@'
+    MODULE = '$'
     LCURLY = '{'
     RCURLY = '}'
     LBRACKET = '['
@@ -61,13 +63,14 @@ RESERVED_KEYWORDS = _build_reserved_keywords()
 
 
 class Token():
-    def __init__(self, type, value, column=None):
+    def __init__(self, type, value, line=None, column=None):
         self.type = type
         self.value = value
+        self.line = line
         self.column = column
 
     def __str__(self):
-        return f"Token({self.type}, {self.value})"
+        return f"Token({self.type}, {self.value}, [{self.line}, {self.column}])"
 
     def __repr__(self):
         return self.__str__()

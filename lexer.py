@@ -7,6 +7,8 @@ class Lexer():
     def __init__(self, text):
         self.text = text
         self.pos = 0
+        self.line = 1
+        self.column = 1
         self.current_char = self.text[self.pos] if self.pos < len(self.text) else None
 
     def error(self):
@@ -14,11 +16,19 @@ class Lexer():
         raise LexerError(message=s)
 
     def advance(self, amount=1):
-        self.pos += amount
-        if self.pos > len(self.text) - 1:
-            self.current_char = None
-        else:
-            self.current_char = self.text[self.pos]
+        while amount > 0:
+            self.pos += 1
+            amount -= 1
+            if self.pos > len(self.text) - 1:
+                self.current_char = None
+                break
+            else:
+                self.current_char = self.text[self.pos]
+                if self.current_char == '\n':
+                    self.line += 1
+                    self.column = 1
+                else:
+                    self.column += 1
 
     def peek(self, peek_amount=1):
         peek_pos = self.pos + peek_amount
@@ -64,63 +74,81 @@ class Lexer():
                 self.advance(2)
                 return Token(
                     TokenType.EXPO,
-                    TokenType.EXPO.value
+                    TokenType.EXPO.value,
+                    self.line,
+                    self.column
                 )
 
             if self.check('//'):
                 self.advance(2)
                 return Token(
                     TokenType.INT_DIV,
-                    TokenType.INT_DIV.value
+                    TokenType.INT_DIV.value,
+                    self.line,
+                    self.column
                 )
 
             if self.check('=-='):
                 self.advance(3)
                 return Token(
                     TokenType.LTHAN_OR_EQUAL,
-                    TokenType.LTHAN_OR_EQUAL.value
+                    TokenType.LTHAN_OR_EQUAL.value,
+                    self.line,
+                    self.column
                 )
 
             if self.check('=+='):
                 self.advance(3)
                 return Token(
                     TokenType.GTHAN_OR_EQUAL,
-                    TokenType.GTHAN_OR_EQUAL.value
+                    TokenType.GTHAN_OR_EQUAL.value,
+                    self.line,
+                    self.column
                 )
 
             if self.check('=-'):
                 self.advance(2)
                 return Token(
                     TokenType.LTHAN,
-                    TokenType.LTHAN.value
+                    TokenType.LTHAN.value,
+                    self.line,
+                    self.column
                 )
 
             if self.check('=+'):
                 self.advance(2)
                 return Token(
                     TokenType.GTHAN,
-                    TokenType.GTHAN.value
+                    TokenType.GTHAN.value,
+                    self.line,
+                    self.column
                 )
 
             if self.check('!='):
                 self.advance(2)
                 return Token(
                     TokenType.NOT_EQUAL,
-                    TokenType.NOT_EQUAL.value
+                    TokenType.NOT_EQUAL.value,
+                    self.line,
+                    self.column
                 )
 
             if self.check('=>'):
                 self.advance(2)
                 return Token(
                     TokenType.SET_TO,
-                    TokenType.SET_TO.value
+                    TokenType.SET_TO.value,
+                    self.line,
+                    self.column
                 )
 
             if self.check('??'):
                 self.advance(2)
                 return Token(
                     TokenType.WHILE,
-                    TokenType.WHILE.value
+                    TokenType.WHILE.value,
+                    self.line,
+                    self.column
                 )
 
             try:
@@ -131,13 +159,14 @@ class Lexer():
                 token = Token(
                     type=token_type,
                     value=token_type.value,
-                    column=self.pos
+                    line=self.line,
+                    column=self.column
                 )
                 self.advance()
                 return token
 
     def number(self):
-        token = Token(type=None, value=None, column=self.pos)
+        token = Token(type=None, value=None, line=self.line, column=self.column)
 
         result = ''
         while self.current_char and self.current_char.isdigit():
@@ -162,7 +191,8 @@ class Lexer():
 
     def string(self):
         result = ''
-        col = self.pos
+        col = self.column
+        line = self.line
         marker = self.current_char
         self.advance()
         while self.current_char and self.current_char != marker:
@@ -170,17 +200,17 @@ class Lexer():
             self.advance()
         self.advance()
 
-        return Token(type=TokenType.STR_CONST, value=result, column=col)
+        return Token(type=TokenType.STR_CONST, value=result, line=line, column=col)
 
     def boolean(self):
         result = self.current_char.upper() == 'T'
-        col = self.pos
+        col = self.column
+        line = self.line
         self.advance()
-        return Token(type=TokenType.BOOL_CONST, value=result, column=col)
+        return Token(type=TokenType.BOOL_CONST, value=result, line=line, column=col)
 
     def id(self):
-        token = Token(type=None, value=None, column=self.pos)
-
+        token = Token(type=None, value=None, line=self.line, column=self.column)
         result = ''
         while self.current_char and self.current_char.isalpha():
             result += self.current_char
