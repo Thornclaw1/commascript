@@ -85,14 +85,6 @@ class SemanticAnalyzer(NodeVisitor):
             self.visit(arg)
 
     def visit_Import(self, node):
-        # file_path = node.file_path + ".cscr"
-        # try:
-        #     with open(file_path) as file:
-        #         lexer = Lexer(file.read())
-        # except:
-        #     self.error(error_code=ErrorCode.FILE_NOT_FOUND, token=node.token, message=file_path)
-        # parser = Parser(lexer)
-        # tree = parser.parse()
         self.current_scope.add_sibling_scope(self.visit(node.imported_tree))
 
     def visit_ModuleGet(self, node):

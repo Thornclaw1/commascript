@@ -129,10 +129,6 @@ class Interpreter(NodeVisitor):
             return value
 
     def visit_Import(self, node):
-        # with open(node.file_path + ".cscr") as file:
-        #     lexer = Lexer(file.read())
-        # parser = Parser(lexer)
-        # tree = parser.parse()
         self.current_scope.add_sibling_scope(self.visit(node.imported_tree))
 
     def visit_ModuleGet(self, node):

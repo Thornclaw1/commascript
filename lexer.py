@@ -218,8 +218,6 @@ class Lexer():
 
         result = result.upper()
 
-        # token.type = TokenType.FUNCTION
-        # token.value = result
         token_type = RESERVED_KEYWORDS.get(result)
         if token_type is None:
             token.type = TokenType.FUNCTION

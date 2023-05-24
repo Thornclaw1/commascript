@@ -59,7 +59,6 @@ def _build_reserved_keywords():
 
 
 RESERVED_KEYWORDS = _build_reserved_keywords()
-# RESERVED_KEYWORDS = {}
 
 
 class Token():
