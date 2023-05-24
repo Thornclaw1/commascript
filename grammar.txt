@@ -12,7 +12,9 @@ statement : var_decl
           | RETURN LANGLE conditional RANGLE
           | built_in_function
           | SET_TO conditional
-          | IMPORT STR_CONST
+          | import_file
+
+import_file : IMPORT STR_CONST
 
 var_decl : conditional
 

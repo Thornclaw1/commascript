@@ -103,12 +103,12 @@ class VarGet(AST):
 
 
 class Import(AST):
-    def __init__(self, token, file_path):
+    def __init__(self, token, imported_tree):
         self.token = token
-        self.file_path = file_path
+        self.imported_tree = imported_tree
 
     def __str__(self):
-        return f"Import({self.file_path})"
+        return f"Import({self.imported_tree})"
     __repr__ = __str__
 
 
@@ -256,10 +256,7 @@ class Parser():
             self.eat(TokenType.RANGLE)
             return node
         if token.type == TokenType.IMPORT:
-            self.eat(TokenType.IMPORT)
-            node = Import(token, self.current_token.value)
-            self.eat(TokenType.STR_CONST)
-            return node
+            return self.import_file()
         if token.type == TokenType.SET:
             return self.var_set()
         if token.type == TokenType.FUNCTION:
@@ -268,6 +265,23 @@ class Parser():
             self.eat(TokenType.SET_TO)
             return self.var_decl()
         return self.var_decl()
+
+    def import_file(self):
+        token = self.current_token
+        self.eat(TokenType.IMPORT)
+
+        file_path = self.current_token.value + ".cscr"
+        try:
+            with open(file_path) as file:
+                lexer = Lexer(file.read())
+        except:
+            self.error(error_code=ErrorCode.FILE_NOT_FOUND, token=node.token, message=file_path)
+        parser = Parser(lexer)
+        tree = parser.parse()
+        node = Import(token, tree)
+
+        self.eat(TokenType.STR_CONST)
+        return node
 
     def var_decl(self):
         return VarDecl(0, self.conditional())
