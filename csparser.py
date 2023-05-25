@@ -103,12 +103,13 @@ class VarGet(AST):
 
 
 class Import(AST):
-    def __init__(self, token, imported_tree):
+    def __init__(self, token, file_path):
         self.token = token
-        self.imported_tree = imported_tree
+        self.file_path = file_path
+        # self.imported_tree = imported_tree
 
     def __str__(self):
-        return f"Import({self.imported_tree})"
+        return f"Import({self.file_path})"
     __repr__ = __str__
 
 
@@ -177,18 +178,28 @@ class BuiltInFunction(AST):
     __repr__ = __str__
 
 
+class NoOp(AST):
+    def __str__(self):
+        return f"NoOp()"
+    __repr__ = __str__
+
+
 class Parser():
-    def __init__(self, lexer, display_debug_messages=False):
+    imported_files = {}
+
+    def __init__(self, lexer, file_path, display_debug_messages=False):
         self.lexer = lexer
+        self.file_path = file_path
+        Parser.imported_files[file_path] = None
         self.current_token = self.lexer.get_next_token()
         self.peeked_at_token = None
         self.display_debug_messages = display_debug_messages
 
-    def error(self, error_code, token):
+    def error(self, error_code, token, message=''):
         raise ParserError(
             error_code=error_code,
             token=token,
-            message=f'{error_code.value} -> {token}'
+            message=f'{error_code.value} -> File: {self.file_path}, Line: {token.line}, Column: {token.column}\n{message}'
         )
 
     def log(self, msg):
@@ -206,7 +217,8 @@ class Parser():
         else:
             self.error(
                 error_code=ErrorCode.UNEXPECTED_TOKEN,
-                token=self.current_token
+                token=self.current_token,
+                message=f"Expected '{token_type.value}' but got '{self.current_token.value}' instead."
             )
 
     def peek(self):
@@ -217,7 +229,8 @@ class Parser():
     def parse(self):
         node = self.program()
         if self.current_token.type != TokenType.EOF:
-            self.error(ErrorCode.UNEXPECTED_TOKEN, self.current_token)
+            self.error(ErrorCode.UNEXPECTED_TOKEN, self.current_token, f"Unexpected character(s) at end of file: {self.current_token.value}")
+        Parser.imported_files[self.file_path] = node
         return node
 
     def program(self):
@@ -270,15 +283,26 @@ class Parser():
         token = self.current_token
         self.eat(TokenType.IMPORT)
 
-        file_path = self.current_token.value + ".cscr"
+        file_path = self.current_token.value
+        file_path = file_path + ".cscr" if ".cscr" not in file_path else file_path
+
+        if file_path in Parser.imported_files and not Parser.imported_files[file_path]:
+            self.error(ErrorCode.CIRCULAR_IMPORT, token, message=f"importing {file_path} causes a circular import.")
+            # self.eat(TokenType.STR_CONST)
+            # return NoOp()
+            pass
+
         try:
             with open(file_path) as file:
                 lexer = Lexer(file.read())
         except:
-            self.error(error_code=ErrorCode.FILE_NOT_FOUND, token=node.token, message=file_path)
-        parser = Parser(lexer)
-        tree = parser.parse()
-        node = Import(token, tree)
+            self.error(error_code=ErrorCode.FILE_NOT_FOUND, token=token, message=f"{file_path} does not exist.")
+        parser = Parser(lexer, file_path, self.display_debug_messages)
+        self.log('')
+        self.log(parser.parse())
+        self.log('')
+
+        node = Import(token, file_path)
 
         self.eat(TokenType.STR_CONST)
         return node
@@ -464,7 +488,7 @@ class Parser():
         elif token.type == TokenType.FUNCTION:
             return self.built_in_function()
         else:
-            self.error(ErrorCode.UNEXPECTED_TOKEN, self.current_token)
+            self.error(ErrorCode.UNEXPECTED_TOKEN, self.current_token, f"Unexpected character(s): {self.current_token.value}")
 
     def variable(self):
         token = self.current_token
@@ -528,5 +552,6 @@ if __name__ == "__main__":
         file_path = sys.argv[1]
         with open(file_path) as file:
             lexer = Lexer(file.read())
-        parser = Parser(lexer, True)
+        parser = Parser(lexer, file_path, True)
         print(parser.parse())
+        print(Parser.imported_files)

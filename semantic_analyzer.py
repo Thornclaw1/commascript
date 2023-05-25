@@ -9,13 +9,15 @@ from built_in_functions import *
 
 
 class SemanticAnalyzer(NodeVisitor):
-    def __init__(self, display_debug_messages=False):
+    def __init__(self, file_path, display_debug_messages=False):
         super(SemanticAnalyzer, self).__init__(display_debug_messages)
+        self.current_file_path = file_path
         self.current_scope = None
 
     def enter_scope(self, scope_name):
         self.log(f"ENTER scope: {scope_name}")
         scoped_symbol_table = ScopedSymbolTable(
+            file_path=self.current_file_path,
             scope_name=scope_name,
             scope_level=self.current_scope.scope_level + 1 if self.current_scope else 1,
             enclosing_scope=self.current_scope,
@@ -32,7 +34,7 @@ class SemanticAnalyzer(NodeVisitor):
         raise SemanticError(
             error_code=error_code,
             token=token,
-            message=f'{error_code.value} -> Line: {token.line}, Column: {token.column}\n{message}'
+            message=f'{error_code.value} -> File: {self.current_file_path}, Line: {token.line}, Column: {token.column}\n{message}'
         )
 
     def log(self, msg):
@@ -85,14 +87,31 @@ class SemanticAnalyzer(NodeVisitor):
             self.visit(arg)
 
     def visit_Import(self, node):
-        self.current_scope.add_sibling_scope(self.visit(node.imported_tree))
+        current_file_path = self.current_file_path
+        self.current_file_path = node.file_path
+
+        if node.file_path not in ScopedSymbolTable.imported_scopes:
+            self.current_scope.import_scope(self.visit(Parser.imported_files[node.file_path]))
+
+        self.current_scope.add_imported_scope(node.file_path)
+
+        self.current_file_path = current_file_path
 
     def visit_ModuleGet(self, node):
-        module = self.current_scope.get_sibling_scope(node.scope_depth, node.mem_loc)
+        module = self.current_scope.get_imported_scope(node.scope_depth, node.mem_loc)
+
+        if not module:
+            self.error(ErrorCode.MODULE_NOT_FOUND, node.token, message=f"${'.'*node.scope_depth}{node.mem_loc} does not exist")
+
         current_scope = self.current_scope
+        current_file_path = self.current_file_path
         self.current_scope = module
+        self.current_file_path = module.file_path
+
         self.visit(node.var_node)
+
         self.current_scope = current_scope
+        self.current_file_path = current_file_path
 
     def visit_Not(self, node):
         self.visit(node.value)
@@ -128,6 +147,9 @@ class SemanticAnalyzer(NodeVisitor):
         for arg in node.args:
             self.visit(arg)
 
+    def visit_NoOp(self, node):
+        pass
+
     def visit_NoneType(self, node):
         pass
 
@@ -139,11 +161,11 @@ if __name__ == "__main__":
         file_path = sys.argv[1]
         with open(file_path) as file:
             lexer = Lexer(file.read())
-        parser = Parser(lexer)
+        parser = Parser(lexer, file_path)
         tree = parser.parse()
         print(tree)
 
-        semantic_analyzer = SemanticAnalyzer(display_debug_messages=True)
+        semantic_analyzer = SemanticAnalyzer(file_path, display_debug_messages=True)
         try:
             semantic_analyzer.visit(tree)
         except SemanticError as e:

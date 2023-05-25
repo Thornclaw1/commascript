@@ -10,13 +10,15 @@ from built_in_functions import *
 
 
 class Interpreter(NodeVisitor):
-    def __init__(self, display_debug_messages=False):
+    def __init__(self, file_path, display_debug_messages=False):
         super(Interpreter, self).__init__(display_debug_messages)
+        self.current_file_path = file_path
         self.current_scope = None
 
     def enter_scope(self, scope_name):
         self.log(f"ENTER scope: {scope_name}")
         scoped_memory_table = Memory(
+            file_path=self.current_file_path,
             scope_name=scope_name,
             scope_level=self.current_scope.scope_level + 1 if self.current_scope else 1,
             enclosing_scope=self.current_scope,
@@ -33,7 +35,7 @@ class Interpreter(NodeVisitor):
         raise InterpreterError(
             error_code=error_code,
             token=token,
-            message=f'{error_code.value} -> Line: {token.line}, Column: {token.column}\n{message}'
+            message=f'{error_code.value} -> File: {self.current_file_path}, Line: {token.line}, Column: {token.column}\n{message}'
         )
 
     def log(self, msg):
@@ -129,14 +131,28 @@ class Interpreter(NodeVisitor):
             return value
 
     def visit_Import(self, node):
-        self.current_scope.add_sibling_scope(self.visit(node.imported_tree))
+        current_file_path = self.current_file_path
+        self.current_file_path = node.file_path
+
+        if node.file_path not in Memory.imported_scopes:
+            self.current_scope.import_scope(self.visit(Parser.imported_files[node.file_path]))
+
+        self.current_scope.add_imported_scope(node.file_path)
+
+        self.current_file_path = current_file_path
 
     def visit_ModuleGet(self, node):
-        module = self.current_scope.get_sibling_scope(node.scope_depth, node.mem_loc)
+        module = self.current_scope.get_imported_scope(node.scope_depth, node.mem_loc)
+
         current_scope = self.current_scope
+        current_file_path = self.current_file_path
         self.current_scope = module
+        self.current_file_path = module.file_path
+
         value = self.visit(node.var_node)
+
         self.current_scope = current_scope
+        self.current_file_path = current_file_path
         return value
 
     def visit_Not(self, node):
@@ -169,6 +185,9 @@ class Interpreter(NodeVisitor):
         function = globals()[function_name]
         return function(self, node.args)
 
+    def visit_NoOp(self, node):
+        pass
+
     def visit_NoneType(self, node):
         pass
 
@@ -192,7 +211,7 @@ if __name__ == "__main__":
 
         try:
             lexer = Lexer(file_contents)
-            parser = Parser(lexer, debug_messages)
+            parser = Parser(lexer, file_path, debug_messages)
             tree = parser.parse()
         except (ParserError, LexerError) as e:
             print(e.message)
@@ -202,7 +221,7 @@ if __name__ == "__main__":
             h = " Semantic Analyzer "
             print(f"\n{'-'*len(h)}\n{h}\n{'-'*len(h)}\n")
 
-        semantic_analyzer = SemanticAnalyzer(debug_messages)
+        semantic_analyzer = SemanticAnalyzer(file_path, debug_messages)
         try:
             semantic_analyzer.visit(tree)
         except SemanticError as e:
@@ -213,7 +232,7 @@ if __name__ == "__main__":
             h = " Interpreter "
             print(f"\n{'-'*len(h)}\n{h}\n{'-'*len(h)}\n")
 
-        interpreter = Interpreter(debug_messages)
+        interpreter = Interpreter(file_path, debug_messages)
         try:
             interpreter.visit(tree)
         except InterpreterError as e:

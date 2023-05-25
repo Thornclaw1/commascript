@@ -13,18 +13,23 @@ class Data(object):
 
 
 class Memory(object):
-    def __init__(self, scope_name, scope_level, enclosing_scope=None, display_debug_messages=False):
+    imported_scopes = {}
+
+    def __init__(self, file_path, scope_name, scope_level, enclosing_scope=None, display_debug_messages=False):
         self._memory = []
+        self.file_path = file_path
         self.scope_name = scope_name
         self.scope_level = scope_level
         self.enclosing_scope = enclosing_scope
         self.display_debug_messages = display_debug_messages
-        self.sibling_scopes = []
+        Memory.imported_scopes[file_path] = self
+        self.imported_file_paths = []
 
     def __str__(self):
         h1 = 'SCOPED MEMORY TABLE'
         lines = ['\n', h1, '=' * len(h1)]
         for header_name, header_value in (
+            ('File path', self.file_path),
             ('Scope name', self.scope_name),
             ('Scope level', self.scope_level),
             ('Enclosing scope',
@@ -32,6 +37,7 @@ class Memory(object):
              )
         ):
             lines.append('%-15s: %s' % (header_name, header_value))
+        lines.append(f"Imported Files : {', '.join([file_name for file_name in self.imported_file_paths])}")
         h2 = 'Memory contents'
         lines.extend([h2, '-' * len(h2)])
         lines.extend([str(data) for data in self._memory])
@@ -73,15 +79,19 @@ class Memory(object):
         elif mem_loc < len(self._memory):
             self._memory[mem_loc].value = value
 
-    def add_sibling_scope(self, scope):
-        self.log(f"Add Module: {len(self.sibling_scopes)}")
-        self.sibling_scopes.append(scope)
+    def import_scope(self, scope):
+        self.log(f"Import Module {scope.file_path}")
+        Memory.imported_scopes[scope.file_path] = scope
 
-    def get_sibling_scope(self, scope_depth, mem_loc):
-        self.log(f'Get Module: {mem_loc}')
+    def add_imported_scope(self, file_path):
+        self.log(f'Add Module: {file_path}')
+        self.imported_file_paths.append(file_path)
+
+    def get_imported_scope(self, scope_depth, mem_loc):
+        self.log(f'Get Module: ${"."*scope_depth}{mem_loc}')
         if scope_depth > 0:
             if self.enclosing_scope is not None:
-                return self.enclosing_scope.get_sibling_scope(scope_depth - 1, mem_loc)
+                return self.enclosing_scope.get_imported_scope(scope_depth - 1, mem_loc)
             return None
-        if mem_loc < len(self.sibling_scopes):
-            return self.sibling_scopes[mem_loc]
+        if mem_loc < len(self.imported_file_paths):
+            return Memory.imported_scopes[self.imported_file_paths[mem_loc]]

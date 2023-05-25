@@ -56,7 +56,7 @@ class Lexer():
                 continue
 
             if not self.current_char:
-                return Token(TokenType.EOF, None)
+                return Token(TokenType.EOF, None, self.line, self.column + 1)
 
             if self.current_char.isdigit():
                 return self.number()

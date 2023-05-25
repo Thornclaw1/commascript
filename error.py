@@ -6,6 +6,8 @@ class ErrorCode(Enum):
     ID_NOT_FOUND = 'Identifier not found'
     WRONG_PARAMS_NUM = 'Wrong number of parameters'
     FILE_NOT_FOUND = 'File not found'
+    MODULE_NOT_FOUND = 'Module not found'
+    CIRCULAR_IMPORT = 'Circular import'
 
 
 class Error(Exception):
