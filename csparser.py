@@ -22,8 +22,16 @@ class Program(AST):
         return self.statement_list_node.__str__()
 
 
+class BlockType(Enum):
+    PROGRAM = 'PROGRAM'
+    FUNCTION = 'FUNCTION'
+    CONDITIONAL = 'CONDITIONAL'
+    LOOP = 'LOOP'
+
+
 class StatementList(AST):
-    def __init__(self):
+    def __init__(self, block_type):
+        self.block_type = block_type
         self.children = []
 
     def __str__(self):
@@ -142,7 +150,7 @@ class If(AST):
         self.else_value = else_value
 
     def __str__(self):
-        return f"If({self.conditional}, {self.value}, {self.else_value})"
+        return f"If({self.conditional}, {self.value}, Else: {self.else_value})"
     __repr__ = __str__
 
 
@@ -238,16 +246,16 @@ class Parser():
             token = Token(TokenType.FUNCTION, 'P')
             const = Const(Token(TokenType.STR_CONST, "Hello World!"))
             built_in_function = BuiltInFunction(token, [const])
-            var_set = VarDecl(0, built_in_function)
-            statement_list_node = StatementList()
-            statement_list_node.children.append(var_set)
+            # var_set = VarDecl(0, built_in_function)
+            statement_list_node = StatementList(BlockType.PROGRAM)
+            statement_list_node.children.append(built_in_function)
             return Program(statement_list_node)
-        statement_list_node = self.statement_list()
+        statement_list_node = self.statement_list(BlockType.PROGRAM)
         program_node = Program(statement_list_node)
         return program_node
 
-    def statement_list(self):
-        root = StatementList()
+    def statement_list(self, block_type):
+        root = StatementList(block_type)
         root.children.append(self.statement())
         while self.current_token.type == TokenType.COMMA:
             self.eat(TokenType.COMMA)
@@ -328,7 +336,7 @@ class Parser():
             params_num = int(self.current_token.value)
             self.eat(TokenType.INT_CONST)
         self.eat(TokenType.COLON)
-        value = self.statement_list()
+        value = self.statement_list(BlockType.FUNCTION)
         self.eat(TokenType.SEMI)
         return VarDecl(params_num, value)
 
@@ -337,7 +345,7 @@ class Parser():
         self.eat(TokenType.IF)
         conditional = self.conditional()
         self.eat(TokenType.COLON)
-        value = self.statement_list()
+        value = self.statement_list(BlockType.CONDITIONAL)
         self.eat(TokenType.SEMI)
         else_value = None
         if self.current_token.type == TokenType.ELSE:
@@ -346,7 +354,7 @@ class Parser():
                 else_value = self.if_statement()
             else:
                 self.eat(TokenType.COLON)
-                else_value = self.statement_list()
+                else_value = self.statement_list(BlockType.CONDITIONAL)
                 self.eat(TokenType.SEMI)
         return If(token, conditional, value, else_value)
 
@@ -355,7 +363,7 @@ class Parser():
         self.eat(TokenType.WHILE)
         conditional = self.conditional()
         self.eat(TokenType.COLON)
-        value = self.statement_list()
+        value = self.statement_list(BlockType.LOOP)
         self.eat(TokenType.SEMI)
         return While(token, conditional, value)
 

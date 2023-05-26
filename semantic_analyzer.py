@@ -13,6 +13,7 @@ class SemanticAnalyzer(NodeVisitor):
         super(SemanticAnalyzer, self).__init__(display_debug_messages)
         self.current_file_path = file_path
         self.current_scope = None
+        self.block_type_stack = []
 
     def enter_scope(self, scope_name):
         self.log(f"ENTER scope: {scope_name}")
@@ -49,8 +50,12 @@ class SemanticAnalyzer(NodeVisitor):
         return global_scope
 
     def visit_StatementList(self, node):
+        self.block_type_stack.append(node.block_type)
+        self.log(f'ENTER block => stack: {", ".join([block_type.value for block_type in self.block_type_stack])}')
         for child in node.children:
             self.visit(child)
+        self.log(f'LEAVE block => stack: {", ".join([block_type.value for block_type in self.block_type_stack])}')
+        self.block_type_stack.pop()
 
     def visit_BinOp(self, node):
         self.visit(node.left)
@@ -121,12 +126,13 @@ class SemanticAnalyzer(NodeVisitor):
         self.enter_scope("if-block")
         self.visit(node.value)
         self.leave_scope()
-        if isinstance(node.else_value, If):
-            self.visit(node.else_value)
-        else:
-            self.enter_scope("else-block")
-            self.visit(node.else_value)
-            self.leave_scope()
+        if node.else_value:
+            if isinstance(node.else_value, If):
+                self.visit(node.else_value)
+            else:
+                self.enter_scope("else-block")
+                self.visit(node.else_value)
+                self.leave_scope()
 
     def visit_While(self, node):
         self.visit(node.conditional)
@@ -135,6 +141,8 @@ class SemanticAnalyzer(NodeVisitor):
         self.leave_scope()
 
     def visit_Return(self, node):
+        if BlockType.FUNCTION not in self.block_type_stack:
+            self.error(ErrorCode.INVALID_RETURN_STATEMENT, node.token, f'Return Statements should not be declared outside of a function')
         self.visit(node.expr)
 
     def visit_BuiltInFunction(self, node):

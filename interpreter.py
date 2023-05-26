@@ -14,6 +14,8 @@ class Interpreter(NodeVisitor):
         super(Interpreter, self).__init__(display_debug_messages)
         self.current_file_path = file_path
         self.current_scope = None
+        self.block_type_stack = []
+        self.function_stack = []
 
     def enter_scope(self, scope_name):
         self.log(f"ENTER scope: {scope_name}")
@@ -50,8 +52,17 @@ class Interpreter(NodeVisitor):
         return global_scope
 
     def visit_StatementList(self, node):
+        self.block_type_stack.append(node.block_type)
+        self.log(f'ENTER block => stack: {", ".join([block_type.value for block_type in self.block_type_stack])}')
         for child in node.children:
-            self.visit(child)
+            return_value = self.visit(child)
+            if isinstance(child, Return):
+                self.function_stack[-1].return_value = return_value
+                break
+            if len(self.function_stack) > 0 and self.function_stack[-1].return_value:
+                break
+        self.log(f'LEAVE block => stack: {", ".join([block_type.value for block_type in self.block_type_stack])}')
+        self.block_type_stack.pop()
 
     def visit_BinOp(self, node):
         left = self.visit(node.left)
@@ -113,20 +124,21 @@ class Interpreter(NodeVisitor):
         self.current_scope.set(node.scope_depth, node.mem_loc, value)
 
     def visit_VarGet(self, node):
-        value = self.current_scope.get(node.scope_depth, node.mem_loc).value
+        var = self.current_scope.get(node.scope_depth, node.mem_loc)
+        value = var.value
         # Function
         if isinstance(value, StatementList):
+            self.function_stack.append(var)
             self.enter_scope(f"m{node.mem_loc}")
+
             for arg in node.args:
                 arg_value = self.visit(arg)
                 data = Data(arg_value)
                 self.current_scope.insert(data)
-            for child in value.children:
-                return_val = self.visit(child)
-                if return_val:
-                    break
+            self.visit(value)
+
             self.leave_scope()
-            return return_val
+            return self.function_stack.pop().return_value
         else:
             return value
 
@@ -163,7 +175,7 @@ class Interpreter(NodeVisitor):
             self.enter_scope("if-block")
             self.visit(node.value)
             self.leave_scope()
-        else:
+        elif node.else_value:
             if isinstance(node.else_value, If):
                 self.visit(node.else_value)
             else:
@@ -176,6 +188,8 @@ class Interpreter(NodeVisitor):
             self.enter_scope("while-block")
             self.visit(node.value)
             self.leave_scope()
+            if len(self.function_stack) > 0 and self.function_stack[-1].return_value:
+                break
 
     def visit_Return(self, node):
         return self.visit(node.expr)

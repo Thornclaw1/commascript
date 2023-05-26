@@ -5,6 +5,7 @@ class ErrorCode(Enum):
     UNEXPECTED_TOKEN = 'Unexpected token'
     ID_NOT_FOUND = 'Identifier not found'
     WRONG_PARAMS_NUM = 'Wrong number of parameters'
+    INVALID_RETURN_STATEMENT = 'Invalid Return Statement'
     FILE_NOT_FOUND = 'File not found'
     MODULE_NOT_FOUND = 'Module not found'
     CIRCULAR_IMPORT = 'Circular import'

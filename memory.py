@@ -5,9 +5,10 @@ from cstoken import *
 class Data(object):
     def __init__(self, value):
         self.value = value
+        self.return_value = None
 
     def __str__(self):
-        return f"<Data(value = {self.value}, type = {type(self.value)})>"
+        return f"<Data(value = {self.value}, type = {type(self.value)}, return_value = {self.return_value})>"
 
     __repr__ = __str__
 
@@ -63,7 +64,7 @@ class Memory(object):
         self._memory.append(data)
 
     def get(self, scope_depth, mem_loc):
-        self.log(f'Lookup: m{"<"*scope_depth}{mem_loc}, (Scope name: {self.scope_name})')
+        self.log(f'Lookup: m{"."*scope_depth}{mem_loc}, (Scope name: {self.scope_name})')
         if scope_depth > 0:
             if self.enclosing_scope is not None:
                 return self.enclosing_scope.get(scope_depth - 1, mem_loc)
@@ -72,7 +73,7 @@ class Memory(object):
             return self._memory[mem_loc]
 
     def set(self, scope_depth, mem_loc, value):
-        self.log(f"Set: m{'<'*scope_depth}{mem_loc}, (Scope name: {self.scope_name})")
+        self.log(f"Set: m{'.'*scope_depth}{mem_loc}, (Scope name: {self.scope_name})")
         if scope_depth > 0:
             if self.enclosing_scope is not None:
                 self.enclosing_scope.set(scope_depth - 1, mem_loc, value)
