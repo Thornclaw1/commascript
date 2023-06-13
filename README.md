@@ -80,6 +80,254 @@ Now if you run this program, it will prompt you for your name, and then print ou
 
 ---
 
+## Casting
+
+Casting is fairly simple. You can cast between all four primitive types: string, int, float, and boolean.
+
+Using the functions `cs`, `ci`, `cf`, and `cb`, you can cast to the different primitive types. More info on these functions in the Built-in Functions section below.
+
+---
+
+## Conditionals
+
+Here is an example of an if statement:
+
+```py
+? 5 = 4:
+    p<"5 is equal to 4">
+;
+```
+
+> Remember that the spaces, including the tab, are unnecessary, but are included for readability
+
+The question mark is used to tell the program to check if the following statement evaluates to true. The colon then starts the if block, and the semi-colon concludes the block.
+
+Statements inside of the block follow the same rules as outside of the block. As such, you must separate statements with a comma if you have more than one.
+
+Let's add an else statement to this code.
+
+```py
+? 5 = 4:
+    p<"5 is equal to 4">
+; e:
+    p<"5 is not equal to 4">
+;
+```
+
+`e` is the keyword for else, and like the if statement, the colon starts the block and the semi-colon concludes the block.
+
+> You may have noticed that there is no comma between the if statement and the else statment, and that is because chains of if, else-if, and else are considered one statment
+
+Let's spice it up with an else-if thrown into the pot.
+
+```py
+? 5 = 4:
+    p<"5 is equal to 4">
+; e? 5 = 6:
+    p<"5 is equal to 6">
+; e:
+    p<"5 is not equal to 4 or 6">
+;
+```
+
+All it takes is adding a `?` right after the `e` and now you can check another conditional.
+
+Now you may be wondering what conditional operators you have access to. Here's the list:
+
+| Condition             | op  |
+| --------------------- | :-: |
+| Equal to              |  =  |
+| Not Equal to          | !=  |
+| Less Than             | =-  |
+| Greater Than          | =+  |
+| Less Than or Equal    | =-= |
+| Greater Than or Equal | =+= |
+| And                   |  &  |
+| Or                    | \|  |
+
+And while we are at it, here's the mathmatical operators:
+
+| Binary Operators |  op  |
+| ---------------- | :--: |
+| Plus             |  +   |
+| Minus            |  -   |
+| Multiply         |  \*  |
+| Divide           |  /   |
+| Integer Divide   |  //  |
+| Modulo           |  %   |
+| Exponent         | \*\* |
+
+| Unary Operators | op  |
+| --------------- | :-: |
+| Positive        |  +  |
+| Negative        |  -  |
+
+---
+
+## While Loops
+
+While loops work similarly to if statments, but they run the code inside of the block continuously until the conditional no longer evaluates to true. Here's an example:
+
+```py
+5,
+?? m0 =+ 0:
+    p<m.0>,
+    s.0 => m.0 - 1
+;
+```
+
+> You can find this script, `countdown.cscr`, in the `example_scripts` folder
+
+Now there is quite a lot to digest here, so let's break it down.
+
+On line 1, we start by storing the number 5 in memory.
+
+Line 2 starts with `??`, which is the keyword for while. We then define the conditional, `m0 =+ 0`. This states that the while loop will run as long as the value at the 0th index in memory is greater than 0.
+
+Now line 3 is where it gets more interesting. You'll notice that we have a print function, with the argument of `m.0`. To explain this, you will need to understand how scope works in this language.
+
+Every time you enter into a new block of code, you enter a new scope as well. This means that any variables that get defined inside of blocks, get defined within that blocks scope. So that brings up the question, how do you access memory outside of the current scope? That's where `.`'s come in. For every `.` in between `m` and the index, you go up one scope.
+
+So now you can see that `m.0` inside the loop, is just getting the 0th index in memory from the enclosing scope.
+
+> Both the `m0` from the conditional and the `m.0` from inside the while loop are getting the same variable
+
+The next line is also interesting. `s` is what is used to reassign a variables value. It works similarly to `m`, but instead of getting, it sets. When setting variables you use the same syntax as getting variables to tell the program what scope and what index to look at. Then you follow it up with the 'set to' keyword `=>`, and the value you want to set it to.
+
+So our line of `s.0 => m.0 - 1` is setting the 0th index of memory in the outer scope, to that same value minus 1.
+
+This while loop will run 5 times, each time printing out a number. The output should look like this:
+
+```
+5
+4
+3
+2
+1
+```
+
+---
+
+## Creating Custom Functions
+
+Creating a function is fairly simple. Here's a couple of examples:
+
+```py
+2:
+    p<m0, m1>
+;
+```
+
+```py
+:
+    p<"Hello there!">
+;
+```
+
+To create a function, you specify the number of parameters followed by a colon to start the function block. And once again a semi-colon is used to conclude the function block.
+
+Now you may notice that on the second example, no number was provided for the number of parameters. That is because if you don't want any parameters to be passed in to the function, rather than typing 0, you can simply just omit the number entirely.
+
+The values passed to the functions will automatically be stored in that functions scope, so obtaining them is no different than before. In the first example, the function takes 2 arguments, and automatically stores them in the 0th and 1st place in the functions scope. So when it gets to `p<m0, m1>`, it's taking both arguments passed in and printing them to the screen.
+
+Let's get to calling these functions. Calling custom functions is the same as calling built-in functions, except instead of using the function names, you are using the functions place in memory, as custom functions are nameless. Here are some examples:
+
+```py
+2:
+    p<m0, m1>
+;,
+m0<"Hello", "World!">
+# > Hello World! #
+```
+
+```py
+:
+    p<"Hello there!">
+;,
+m0<>,
+# > Hello there! #
+m0
+# > Hello there! #
+```
+
+> Just like how you can omit the number if there are no parameters, you can omit the angle brackets if you aren't passing anything in.
+
+---
+
+## Collections
+
+If you've ever coded in another language, these should look familiar.
+
+Lists
+
+```py
+[2,4,5,7,3]
+```
+
+Dictionaries
+
+```py
+{'john':4, 'jane':3}
+```
+
+The above statments are all the syntax you need to create lists and dictionaries, and using `m`, you can obtain the whole list or dictionary object later in the code.
+
+To obtain a single value out of these collections, you use what is called an indexer. Using square brackets, you can obtain values with indexes or keys. Here are some examples:
+
+```py
+[2,4,5,7,3],
+m0[2], # 5 #
+m0[0]  # 2 #
+```
+
+```py
+{'john':4, 'jane':3},
+m0['john'], # 4 #
+m0['jane']  # 3 #
+```
+
+To modify these collections, there are three functions you can use: `a`, `rm`, and `rmv`. Add, Remove, and Remove by Value, respectively. I suggest reading the documentation on those functions down below in the section labeled Built-in Functions.
+
+---
+
+## Importing Other CommaScript Files
+
+As we all know, the larger your project becomes, the harder it is to maintain. And while hard to maintain was one of the goals of this project, I thought it only fair to allow for some organization. This also allows for modules to be built and be used in many different projects.
+
+So how do you go about importing files? Well it's fairly simple. Using an `@` sign followed by the relative file path in quotes will import the file.
+
+```py
+@'file_path.cscr'
+```
+
+> When the program imports another file, it will run that file automatically.
+
+To obtain access to the imported files memory, you use a `$` followed by the index of the module. You can then use `m` and `s` to get variables, call functions, and set variables on the other script.
+
+file1.cscr
+
+```py
+2:
+    m0 * 2,
+    r<m2 + m1>
+;,
+:
+    p<"Hello World!">
+;
+```
+
+main.cscr
+
+```py
+@'file1.cscr',
+$0m0<4, 1>, # 9 #
+$0m1 # > Hello World! #
+```
+
+> Note: imports don't get stored in memory, so in the above file, `main.cscr`, only one variable gets stored, which is `9`.
+
+---
+
 ## Built-in Functions
 
 ### Function Syntax
@@ -100,10 +348,10 @@ If passed more than one argument, it will separate them with a space
 
 ```py
 p<"Hello World!">
-# > Hello World!
+# > Hello World! #
 
 p<"Hello", "World!">
-# > Hello World!
+# > Hello World! #
 ```
 
 ---
@@ -178,6 +426,21 @@ Casts the passed value to a bool and returns the result
 cb<"string">, # True #
 cb<234>, # True #
 cb<0> # False #
+```
+
+---
+
+### R
+
+Exits the function and gives it the return value of the passed value
+
+#### Example
+
+```py
+2:
+    r<m0 + m1>
+;,
+m0<4, 5> # 9 #
 ```
 
 ---
