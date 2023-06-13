@@ -5,11 +5,17 @@ def flatten(str):
     # return "".join(str.split())
     new_str = ""
     in_string = False
+    in_comment = False
     opening_quote = ''
     for char in str:
+        if char == '#' and not in_string:
+            in_comment = not in_comment
+            continue
+        if in_comment:
+            continue
         if in_string or not char.isspace():
             new_str += char
-            if char in '"\'#':
+            if char in '"\'':
                 if in_string:
                     if opening_quote == char:
                         in_string = False
