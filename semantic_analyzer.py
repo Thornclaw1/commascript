@@ -64,6 +64,15 @@ class SemanticAnalyzer(NodeVisitor):
     def visit_Const(self, node):
         pass
 
+    def visit_List(self, node):
+        for element in node.value:
+            self.visit(element)
+
+    def visit_Dict(self, node):
+        for key, value in node.value.items():
+            self.visit(key)
+            self.visit(value)
+
     def visit_UnaryOp(self, node):
         self.visit(node.expr)
 
@@ -90,6 +99,9 @@ class SemanticAnalyzer(NodeVisitor):
             self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=node.token, message=f"{len(node.args)} {'was' if len(node.args) == 1 else 'were'} passed, but {symbol.params_num} {'was' if symbol.params_num == 1 else 'were'} expected")
         for arg in node.args:
             self.visit(arg)
+        if node.indexer:
+            if not isinstance(symbol.value, (List, Dict)):
+                self.error(ErrorCode.INVALID_INDEXER, token=node.token, message=f"{type(symbol.value)} does not support the use of indexers.")
 
     def visit_Import(self, node):
         current_file_path = self.current_file_path
@@ -148,7 +160,7 @@ class SemanticAnalyzer(NodeVisitor):
     def visit_BuiltInFunction(self, node):
         function_name = 'cs_' + node.name + '_arg_validation'
         function = globals()[function_name]
-        valid_arguments = function(self, node.args)
+        valid_arguments = function(self, node.token, node.args)
         if not valid_arguments:
             self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=node.token, message=f'Invalid arguments for function {node.name}')
 

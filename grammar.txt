@@ -45,12 +45,18 @@ factor : PLUS factor
        | FLOAT_CONST
        | STR_CONST
        | BOOL_CONST
+       | list 
+       | dictionary
        | LANGLE conditional RANGLE
        | variable
        | module
        | built_in_function
 
-variable : MEMORY (PERIOD)* INT_CONST (LANGLE (conditional)? (COMMA conditional)* RANGLE)?
+list : LBRACKET (conditional)? (COMMA conditional)* RBRACKET
+
+dict : LCURLY (conditional COLON conditional)? (COMMA conditional COLON conditional)* RCURLY
+
+variable : MEMORY (PERIOD)* INT_CONST (LANGLE (conditional)? (COMMA conditional)* RANGLE | LBRACKET conditional RBRACKET)?
 
 module : MODULE (PERIOD)* INT_CONST variable
 

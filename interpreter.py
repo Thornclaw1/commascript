@@ -102,6 +102,18 @@ class Interpreter(NodeVisitor):
     def visit_Const(self, node):
         return node.value
 
+    def visit_List(self, node):
+        list = []
+        for element in node.value:
+            list.append(self.visit(element))
+        return list
+
+    def visit_Dict(self, node):
+        dict = {}
+        for key, value in node.value.items():
+            dict[self.visit(key)] = self.visit(value)
+        return dict
+
     def visit_UnaryOp(self, node):
         op = node.op.type
         if op == TokenType.PLUS:
@@ -139,6 +151,16 @@ class Interpreter(NodeVisitor):
 
             self.leave_scope()
             return self.function_stack.pop().return_value
+        elif isinstance(value, list) and node.indexer:
+            index = self.visit(node.indexer)
+            if not isinstance(index, int) or index < 0 or index >= len(value):
+                self.error(ErrorCode.INDEX_ERROR, token=node.token, message=f"{index} is out of range")
+            return value[self.visit(node.indexer)]
+        elif isinstance(value, dict) and node.indexer:
+            index = self.visit(node.indexer)
+            if index not in value:
+                self.error(ErrorCode.INDEX_ERROR, token=node.token, message=f"{index} does not exist in the given dictionary")
+            return value[self.visit(node.indexer)]
         else:
             return value
 
@@ -197,7 +219,8 @@ class Interpreter(NodeVisitor):
     def visit_BuiltInFunction(self, node):
         function_name = 'cs_' + node.name
         function = globals()[function_name]
-        return function(self, node.args)
+        args = [self.visit(arg) for arg in node.args]
+        return function(self, node.token, args)
 
     def visit_NoOp(self, node):
         pass

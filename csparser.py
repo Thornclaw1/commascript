@@ -67,6 +67,26 @@ class Const(AST):
     __repr__ = __str__
 
 
+class List(AST):
+    def __init__(self, token, value):
+        self.token = token
+        self.value = value
+
+    def __str__(self):
+        return f"List({self.value})"
+    __repr__ = __str__
+
+
+class Dict(AST):
+    def __init__(self, token, value):
+        self.token = token
+        self.value = value
+
+    def __str__(self):
+        return f"Dict({self.value})"
+    __repr__ = __str__
+
+
 class UnaryOp(AST):
     def __init__(self, op, expr):
         self.token = self.op = op
@@ -99,14 +119,15 @@ class VarSet(AST):
 
 
 class VarGet(AST):
-    def __init__(self, token, scope_depth, mem_loc, args):
+    def __init__(self, token, scope_depth, mem_loc, args, indexer):
         self.token = token
         self.scope_depth = scope_depth
         self.mem_loc = mem_loc
         self.args = args
+        self.indexer = indexer
 
     def __str__(self):
-        return f"VarGet(m{'.'*self.scope_depth}{self.mem_loc}, {self.args})"
+        return f"VarGet(m{'.'*self.scope_depth}{self.mem_loc}, {self.args}, [{self.indexer}])"
     __repr__ = __str__
 
 
@@ -484,6 +505,10 @@ class Parser():
         elif token.type == TokenType.BOOL_CONST:
             self.eat(TokenType.BOOL_CONST)
             return Const(token)
+        elif token.type == TokenType.LBRACKET:
+            return self.list()
+        elif token.type == TokenType.LCURLY:
+            return self.dict()
         elif token.type == TokenType.LANGLE:
             self.eat(TokenType.LANGLE)
             node = self.conditional()
@@ -498,6 +523,36 @@ class Parser():
         else:
             self.error(ErrorCode.UNEXPECTED_TOKEN, self.current_token, f"Unexpected character(s): {self.current_token.value}")
 
+    def list(self):
+        token = self.current_token
+        elements = []
+        self.eat(TokenType.LBRACKET)
+        if self.current_token.type != TokenType.RBRACKET:
+            elements.append(self.conditional())
+        while self.current_token.type == TokenType.COMMA:
+            self.eat(TokenType.COMMA)
+            elements.append(self.conditional())
+        self.eat(TokenType.RBRACKET)
+        return List(token, elements)
+
+    def dict(self):
+        token = self.current_token
+        kvps = {}
+        self.eat(TokenType.LCURLY)
+        if self.current_token.type != TokenType.RCURLY:
+            key = self.conditional()
+            self.eat(TokenType.COLON)
+            value = self.conditional()
+            kvps[key] = value
+        while self.current_token.type == TokenType.COMMA:
+            self.eat(TokenType.COMMA)
+            key = self.conditional()
+            self.eat(TokenType.COLON)
+            value = self.conditional()
+            kvps[key] = value
+        self.eat(TokenType.RCURLY)
+        return Dict(token, kvps)
+
     def variable(self):
         token = self.current_token
         self.eat(TokenType.MEMORY)
@@ -508,6 +563,7 @@ class Parser():
         mem_loc = self.current_token.value
         self.eat(TokenType.INT_CONST)
         args = []
+        indexer = None
         if self.current_token.type == TokenType.LANGLE:
             self.eat(TokenType.LANGLE)
             if self.current_token.type != TokenType.RANGLE:
@@ -516,7 +572,11 @@ class Parser():
                 self.eat(TokenType.COMMA)
                 args.append(self.conditional())
             self.eat(TokenType.RANGLE)
-        return VarGet(token, scope_depth, mem_loc, args)
+        elif self.current_token.type == TokenType.LBRACKET:
+            self.eat(TokenType.LBRACKET)
+            indexer = self.conditional()
+            self.eat(TokenType.RBRACKET)
+        return VarGet(token, scope_depth, mem_loc, args, indexer)
 
     def module(self):
         token = self.current_token
@@ -547,6 +607,9 @@ class Parser():
         self.eat(TokenType.RANGLE)
 
         node = BuiltInFunction(token, args)
+
+        if "cs_" + token.value not in globals():
+            self.error(ErrorCode.ID_NOT_FOUND, token, f"Function '{token.value}' does not exist")
 
         if allow_var_decl and contains_return(globals()["cs_" + token.value]):
             return VarDecl(0, node)
