@@ -48,19 +48,19 @@ def cs_CI(self, token, args):  # Cast to Int
     return int(args[0])
 
 
-def cs_CF_arg_validation(args):
+def cs_CF_arg_validation(self, token, args):
     return len(args) == 1
 
 
-def cs_CF(args):  # Cast to Float
+def cs_CF(self, token, args):  # Cast to Float
     return float(args[0])
 
 
-def cs_CB_arg_validation(args):
+def cs_CB_arg_validation(self, token, args):
     return len(args) == 1
 
 
-def cs_CB(args):  # Cast to Bool
+def cs_CB(self, token, args):  # Cast to Bool
     return bool(args[0])
 
 
