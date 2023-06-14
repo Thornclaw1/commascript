@@ -143,12 +143,15 @@ class Interpreter(NodeVisitor):
         value = var.value
         # Function
         if isinstance(value, StatementList):
+            arg_values = []
+            for arg in node.args:
+                arg_values.append(self.visit(arg))
+
             self.function_stack.append(var)
             self.enter_scope(f"m{node.mem_loc}", self.current_scope.get_scope(node.scope_depth))
 
-            for arg in node.args:
-                arg_value = self.visit(arg)
-                data = Data(arg_value)
+            for arg_val in arg_values:
+                data = Data(arg_val)
                 self.current_scope.insert(data)
             self.visit(value)
 
