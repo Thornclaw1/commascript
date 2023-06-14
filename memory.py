@@ -16,12 +16,13 @@ class Data(object):
 class Memory(object):
     imported_scopes = {}
 
-    def __init__(self, file_path, scope_name, scope_level, enclosing_scope=None, display_debug_messages=False):
+    def __init__(self, file_path, scope_name, scope_level, enclosing_scope=None, scope_to_return_to=None, display_debug_messages=False):
         self._memory = []
         self.file_path = file_path
         self.scope_name = scope_name
         self.scope_level = scope_level
         self.enclosing_scope = enclosing_scope
+        self.scope_to_return_to = scope_to_return_to
         self.display_debug_messages = display_debug_messages
         Memory.imported_scopes[file_path] = self
         self.imported_file_paths = []
@@ -71,6 +72,13 @@ class Memory(object):
             return None
         if mem_loc < len(self._memory):
             return self._memory[mem_loc]
+
+    def get_scope(self, scope_depth):
+        if scope_depth > 0:
+            if self.enclosing_scope is not None:
+                return self.enclosing_scope.get_scope(scope_depth - 1)
+            return None
+        return self
 
     def set(self, scope_depth, mem_loc, value):
         self.log(f"Set: m{'.'*scope_depth}{mem_loc}, (Scope name: {self.scope_name})")

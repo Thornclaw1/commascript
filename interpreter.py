@@ -17,13 +17,16 @@ class Interpreter(NodeVisitor):
         self.block_type_stack = []
         self.function_stack = []
 
-    def enter_scope(self, scope_name):
+    def enter_scope(self, scope_name, enclosing_scope=None):
+        enclosing_scope = enclosing_scope if enclosing_scope else self.current_scope
+        scope_to_return_to = self.current_scope
         self.log(f"ENTER scope: {scope_name}")
         scoped_memory_table = Memory(
             file_path=self.current_file_path,
             scope_name=scope_name,
             scope_level=self.current_scope.scope_level + 1 if self.current_scope else 1,
-            enclosing_scope=self.current_scope,
+            enclosing_scope=enclosing_scope,
+            scope_to_return_to=scope_to_return_to,
             display_debug_messages=self.display_debug_messages
         )
         self.current_scope = scoped_memory_table
@@ -31,7 +34,7 @@ class Interpreter(NodeVisitor):
     def leave_scope(self):
         self.log(self.current_scope)
         self.log(f'LEAVE scope: {self.current_scope.scope_name}')
-        self.current_scope = self.current_scope.enclosing_scope
+        self.current_scope = self.current_scope.scope_to_return_to
 
     def error(self, error_code, token, message=''):
         raise InterpreterError(
@@ -141,7 +144,7 @@ class Interpreter(NodeVisitor):
         # Function
         if isinstance(value, StatementList):
             self.function_stack.append(var)
-            self.enter_scope(f"m{node.mem_loc}")
+            self.enter_scope(f"m{node.mem_loc}", self.current_scope.get_scope(node.scope_depth))
 
             for arg in node.args:
                 arg_value = self.visit(arg)
@@ -151,11 +154,13 @@ class Interpreter(NodeVisitor):
 
             self.leave_scope()
             return self.function_stack.pop().return_value
+        # List
         elif isinstance(value, list) and node.indexer:
             index = self.visit(node.indexer)
             if not isinstance(index, int) or index < 0 or index >= len(value):
                 self.error(ErrorCode.INDEX_ERROR, token=node.token, message=f"{index} is out of range")
             return value[self.visit(node.indexer)]
+        # Dictionary
         elif isinstance(value, dict) and node.indexer:
             index = self.visit(node.indexer)
             if index not in value:
