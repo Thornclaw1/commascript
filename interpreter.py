@@ -14,7 +14,7 @@ class Interpreter(NodeVisitor):
         super(Interpreter, self).__init__(display_debug_messages)
         self.current_file_path = file_path
         self.current_scope = None
-        self.block_type_stack = []
+        # self.block_type_stack = []
         self.function_stack = []
 
     def enter_scope(self, scope_name, enclosing_scope=None):
@@ -54,17 +54,17 @@ class Interpreter(NodeVisitor):
         return global_scope
 
     def visit_StatementList(self, node):
-        self.block_type_stack.append(node.block_type)
-        self.log(f'ENTER block => stack: {", ".join([block_type.value for block_type in self.block_type_stack])}')
+        # self.block_type_stack.append(node.block_type)
+        # self.log(f'ENTER block => stack: {", ".join([block_type.value for block_type in self.block_type_stack])}')
         for child in node.children:
+            if len(self.function_stack) > 0 and self.function_stack[-1].return_value:
+                break
             return_value = self.visit(child)
             if isinstance(child, Return):
                 self.function_stack[-1].return_value = return_value
                 break
-            if len(self.function_stack) > 0 and self.function_stack[-1].return_value:
-                break
-        self.log(f'LEAVE block => stack: {", ".join([block_type.value for block_type in self.block_type_stack])}')
-        self.block_type_stack.pop()
+        # self.log(f'LEAVE block => stack: {", ".join([block_type.value for block_type in self.block_type_stack])}')
+        # self.block_type_stack.pop()
 
     def visit_BinOp(self, node):
         left = self.visit(node.left)
