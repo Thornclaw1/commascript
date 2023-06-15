@@ -61,7 +61,8 @@ class Interpreter(NodeVisitor):
             if isinstance(child, Return):
                 self.function_stack[-1].return_value = return_value
                 break
-            if len(self.function_stack) > 0 and self.function_stack[-1].return_value:
+            if len(self.function_stack) > 0 and self.function_stack[-1].return_value != None:
+                self.log(f"Leaving {node.block_type} with return value of {self.function_stack[-1].return_value}")
                 break
         # self.log(f'LEAVE block => stack: {", ".join([block_type.value for block_type in self.block_type_stack])}')
         # self.block_type_stack.pop()
@@ -176,6 +177,8 @@ class Interpreter(NodeVisitor):
             if index not in value:
                 self.error(ErrorCode.INDEX_ERROR, token=node.token, message=f"{index} does not exist in the given dictionary")
             return value[self.visit(node.indexer)]
+        elif node.indexer:
+            self.error(ErrorCode.INVALID_INDEXER, node.token, f"'{type(value).__name__}' does not support the use of indexers.")
         else:
             return value
 
@@ -228,7 +231,7 @@ class Interpreter(NodeVisitor):
             self.enter_scope("while-block")
             self.visit(node.value)
             self.leave_scope()
-            if len(self.function_stack) > 0 and self.function_stack[-1].return_value:
+            if len(self.function_stack) > 0 and self.function_stack[-1].return_value != None:
                 break
 
     def visit_Return(self, node):

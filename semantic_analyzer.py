@@ -99,9 +99,9 @@ class SemanticAnalyzer(NodeVisitor):
             self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=node.token, message=f"{len(node.args)} {'was' if len(node.args) == 1 else 'were'} passed, but {symbol.params_num} {'was' if symbol.params_num == 1 else 'were'} expected")
         for arg in node.args:
             self.visit(arg)
-        if node.indexer:
-            if not isinstance(symbol.value, (List, Dict)):
-                self.error(ErrorCode.INVALID_INDEXER, token=node.token, message=f"{type(symbol.value)} does not support the use of indexers.")
+        # if node.indexer:
+        #     if not isinstance(symbol.value, (List, Dict, VarGet)):
+        #         self.error(ErrorCode.INVALID_INDEXER, token=node.token, message=f"'{type(symbol.value).__name__}' does not support the use of indexers.")
 
     def visit_Import(self, node):
         current_file_path = self.current_file_path
