@@ -24,7 +24,8 @@ class Memory(object):
         self.enclosing_scope = enclosing_scope
         self.scope_to_return_to = scope_to_return_to
         self.display_debug_messages = display_debug_messages
-        Memory.imported_scopes[file_path] = self
+        if file_path not in Memory.imported_scopes:
+            self.import_scope(self)
         self.imported_file_paths = []
 
     def __str__(self):
@@ -36,9 +37,10 @@ class Memory(object):
             ('Scope level', self.scope_level),
             ('Enclosing scope',
                 self.enclosing_scope.scope_name if self.enclosing_scope else None
-             )
+             ),
+            ('Scope to Return to', self.scope_to_return_to.scope_name if self.scope_to_return_to else None)
         ):
-            lines.append('%-15s: %s' % (header_name, header_value))
+            lines.append('%-19s: %s' % (header_name, header_value))
         lines.append(f"Imported Files : {', '.join([file_name for file_name in self.imported_file_paths])}")
         h2 = 'Memory contents'
         lines.extend([h2, '-' * len(h2)])
@@ -65,7 +67,7 @@ class Memory(object):
         self._memory.append(data)
 
     def get(self, scope_depth, mem_loc):
-        self.log(f'Lookup: m{"."*scope_depth}{mem_loc}, (Scope name: {self.scope_name})')
+        self.log(f'Lookup: m{"."*scope_depth}{mem_loc}, (Scope name: {self.file_path}:{self.scope_name})')
         if scope_depth > 0:
             if self.enclosing_scope is not None:
                 return self.enclosing_scope.get(scope_depth - 1, mem_loc)
@@ -81,7 +83,7 @@ class Memory(object):
         return self
 
     def set(self, scope_depth, mem_loc, value):
-        self.log(f"Set: m{'.'*scope_depth}{mem_loc}, (Scope name: {self.scope_name})")
+        self.log(f"Set: m{'.'*scope_depth}{mem_loc}, (Scope name: {self.file_path}:{self.scope_name})")
         if scope_depth > 0:
             if self.enclosing_scope is not None:
                 self.enclosing_scope.set(scope_depth - 1, mem_loc, value)

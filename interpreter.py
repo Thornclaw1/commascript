@@ -19,21 +19,20 @@ class Interpreter(NodeVisitor):
 
     def enter_scope(self, scope_name, enclosing_scope=None):
         enclosing_scope = enclosing_scope if enclosing_scope else self.current_scope
-        scope_to_return_to = self.current_scope
-        self.log(f"ENTER scope: {scope_name}")
+        self.log(f"ENTER scope: {self.current_file_path} : {scope_name}")
         scoped_memory_table = Memory(
             file_path=self.current_file_path,
             scope_name=scope_name,
             scope_level=self.current_scope.scope_level + 1 if self.current_scope else 1,
             enclosing_scope=enclosing_scope,
-            scope_to_return_to=scope_to_return_to,
+            scope_to_return_to=self.current_scope,
             display_debug_messages=self.display_debug_messages
         )
         self.current_scope = scoped_memory_table
 
     def leave_scope(self):
         self.log(self.current_scope)
-        self.log(f'LEAVE scope: {self.current_scope.scope_name}')
+        self.log(f'LEAVE scope: {self.current_scope.file_path} : {self.current_scope.scope_name}' + f' -> {self.current_scope.scope_to_return_to.file_path} : {self.current_scope.scope_to_return_to.scope_name}' if self.current_scope.scope_to_return_to else '')
         self.current_scope = self.current_scope.scope_to_return_to
 
     def error(self, error_code, token, message=''):
@@ -140,6 +139,8 @@ class Interpreter(NodeVisitor):
 
     def visit_VarGet(self, node):
         var = self.current_scope.get(node.scope_depth, node.mem_loc)
+        if not var:
+            self.error(ErrorCode.VARIABLE_MISSING, node.token, f'm{"."*node.scope_depth}{node.mem_loc} seem\'s to have been lost in the darkness that is CommaScript.')
         value = var.value
         # Function
         if isinstance(value, StatementList):
@@ -190,11 +191,14 @@ class Interpreter(NodeVisitor):
         current_file_path = self.current_file_path
         self.current_scope = module
         self.current_file_path = module.file_path
+        self.log(f'ENTER module scope: {self.current_scope.file_path} : {self.current_scope.scope_name}')
 
         value = self.visit(node.var_node)
 
+        self.log(f'LEAVE module scope: {self.current_scope.file_path} : {self.current_scope.scope_name} -> {current_scope.file_path} : {current_scope.scope_name}')
         self.current_scope = current_scope
         self.current_file_path = current_file_path
+
         return value
 
     def visit_Not(self, node):
