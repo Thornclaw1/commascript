@@ -19,7 +19,7 @@ class Interpreter(NodeVisitor):
 
     def enter_scope(self, scope_name, enclosing_scope=None):
         enclosing_scope = enclosing_scope if enclosing_scope else self.current_scope
-        self.log(f"ENTER scope: {self.current_file_path} : {scope_name}")
+        self.log(f"ENTER scope: {self.current_file_path}: {scope_name}")
         scoped_memory_table = Memory(
             file_path=self.current_file_path,
             scope_name=scope_name,
@@ -32,7 +32,7 @@ class Interpreter(NodeVisitor):
 
     def leave_scope(self):
         self.log(self.current_scope)
-        self.log(f'LEAVE scope: {self.current_scope.file_path} : {self.current_scope.scope_name}' + f' -> {self.current_scope.scope_to_return_to.file_path} : {self.current_scope.scope_to_return_to.scope_name}' if self.current_scope.scope_to_return_to else '')
+        self.log(f'LEAVE scope: {self.current_scope.file_path}: {self.current_scope.scope_name}' + f' -> {self.current_scope.scope_to_return_to.file_path}: {self.current_scope.scope_to_return_to.scope_name}' if self.current_scope.scope_to_return_to else '')
         self.current_scope = self.current_scope.scope_to_return_to
 
     def error(self, error_code, token, message=''):
@@ -160,7 +160,10 @@ class Interpreter(NodeVisitor):
             self.visit(value)
 
             self.leave_scope()
-            return self.function_stack.pop().return_value
+            self.function_stack.pop()
+            return_value = var.return_value
+            var.return_value = None
+            return return_value
         # List
         elif isinstance(value, list) and node.indexer:
             index = self.visit(node.indexer)

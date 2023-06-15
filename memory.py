@@ -67,7 +67,7 @@ class Memory(object):
         self._memory.append(data)
 
     def get(self, scope_depth, mem_loc):
-        self.log(f'Lookup: m{"."*scope_depth}{mem_loc}, (Scope name: {self.file_path}:{self.scope_name})')
+        self.log(f'Lookup: m{"."*scope_depth}{mem_loc}, (Scope name: {self.file_path}: {self.scope_name})')
         if scope_depth > 0:
             if self.enclosing_scope is not None:
                 return self.enclosing_scope.get(scope_depth - 1, mem_loc)
@@ -83,7 +83,7 @@ class Memory(object):
         return self
 
     def set(self, scope_depth, mem_loc, value):
-        self.log(f"Set: m{'.'*scope_depth}{mem_loc}, (Scope name: {self.file_path}:{self.scope_name})")
+        self.log(f"Set: m{'.'*scope_depth}{mem_loc}, (Scope name: {self.file_path}: {self.scope_name})")
         if scope_depth > 0:
             if self.enclosing_scope is not None:
                 self.enclosing_scope.set(scope_depth - 1, mem_loc, value)
