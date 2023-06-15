@@ -70,36 +70,39 @@ class Interpreter(NodeVisitor):
         left = self.visit(node.left)
         right = self.visit(node.right)
         op_type = node.op.type
-        if op_type == TokenType.PLUS:
-            return left + right
-        elif op_type == TokenType.MINUS:
-            return left - right
-        elif op_type == TokenType.MUL:
-            return left * right
-        elif op_type == TokenType.EXPO:
-            return left ** right
-        elif op_type == TokenType.INT_DIV:
-            return left // right
-        elif op_type == TokenType.FLOAT_DIV:
-            return left / right
-        elif op_type == TokenType.MOD:
-            return left % right
-        elif op_type == TokenType.AND:
-            return left and right
-        elif op_type == TokenType.OR:
-            return left or right
-        elif op_type == TokenType.EQUAL:
-            return left == right
-        elif op_type == TokenType.NOT_EQUAL:
-            return left != right
-        elif op_type == TokenType.LTHAN:
-            return left < right
-        elif op_type == TokenType.GTHAN:
-            return left > right
-        elif op_type == TokenType.LTHAN_OR_EQUAL:
-            return left <= right
-        elif op_type == TokenType.GTHAN_OR_EQUAL:
-            return left >= right
+        try:
+            if op_type == TokenType.PLUS:
+                return left + right
+            elif op_type == TokenType.MINUS:
+                return left - right
+            elif op_type == TokenType.MUL:
+                return left * right
+            elif op_type == TokenType.EXPO:
+                return left ** right
+            elif op_type == TokenType.INT_DIV:
+                return left // right
+            elif op_type == TokenType.FLOAT_DIV:
+                return left / right
+            elif op_type == TokenType.MOD:
+                return left % right
+            elif op_type == TokenType.AND:
+                return left and right
+            elif op_type == TokenType.OR:
+                return left or right
+            elif op_type == TokenType.EQUAL:
+                return left == right
+            elif op_type == TokenType.NOT_EQUAL:
+                return left != right
+            elif op_type == TokenType.LTHAN:
+                return left < right
+            elif op_type == TokenType.GTHAN:
+                return left > right
+            elif op_type == TokenType.LTHAN_OR_EQUAL:
+                return left <= right
+            elif op_type == TokenType.GTHAN_OR_EQUAL:
+                return left >= right
+        except:
+            self.error(ErrorCode.TYPE_ERROR, node.token, f"'{node.op.value}' not supported between instances of '{type(left).__name__}' and '{type(right).__name__}'")
 
     def visit_Const(self, node):
         return node.value

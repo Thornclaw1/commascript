@@ -14,7 +14,8 @@ class ErrorCode(Enum):
     INDEX_ERROR = 'Index out of range'
     KEY_NOT_FOUND = 'Key not found'
     VALUE_NOT_FOUND = 'Value not found'
-    VARIABLE_MISSING = "A variable seems to be missing"
+    VARIABLE_MISSING = 'A variable seems to be missing'
+    TYPE_ERROR = 'Type error'
 
 
 class Error(Exception):
