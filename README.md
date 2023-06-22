@@ -523,3 +523,21 @@ rmv<m0,4> # {'john':2,'doe':6} #
 ```
 
 ---
+
+### L
+
+Returns the length of a list or dictionary
+
+#### Examples
+
+```py
+['john','jane','doe'],
+l<m0> # 3 #
+```
+
+```py
+{'john':2,'jane':4,'doe':6},
+l<m0> # 3 #
+```
+
+---
