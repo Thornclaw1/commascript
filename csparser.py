@@ -280,6 +280,8 @@ class Parser():
         root.children.append(self.statement())
         while self.current_token.type == TokenType.COMMA:
             self.eat(TokenType.COMMA)
+            if self.current_token.type == TokenType.EOF:
+                break
             root.children.append(self.statement())
         return root
 
@@ -531,6 +533,8 @@ class Parser():
             elements.append(self.conditional())
         while self.current_token.type == TokenType.COMMA:
             self.eat(TokenType.COMMA)
+            if self.current_token.type == TokenType.RBRACKET:
+                break
             elements.append(self.conditional())
         self.eat(TokenType.RBRACKET)
         return List(token, elements)
@@ -546,6 +550,8 @@ class Parser():
             kvps[key] = value
         while self.current_token.type == TokenType.COMMA:
             self.eat(TokenType.COMMA)
+            if self.current_token.type == TokenType.RCURLY:
+                break
             key = self.conditional()
             self.eat(TokenType.COLON)
             value = self.conditional()

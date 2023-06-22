@@ -2,7 +2,7 @@
 
 program : statement_list
 
-statement_list : statement (COMMA statement)*
+statement_list : statement (COMMA statement)* (COMMA)?
 
 statement : var_decl
           | var_set
@@ -52,9 +52,9 @@ factor : PLUS factor
        | module
        | built_in_function
 
-list : LBRACKET (conditional)? (COMMA conditional)* RBRACKET
+list : LBRACKET (conditional)? (COMMA conditional)* (COMMA)? RBRACKET
 
-dict : LCURLY (conditional COLON conditional)? (COMMA conditional COLON conditional)* RCURLY
+dict : LCURLY (conditional COLON conditional)? (COMMA conditional COLON conditional)* (COMMA)? RCURLY
 
 variable : MEMORY (PERIOD)* INT_CONST (LANGLE (conditional)? (COMMA conditional)* RANGLE | LBRACKET conditional RBRACKET)?
 
