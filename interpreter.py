@@ -1,3 +1,5 @@
+from inspect import signature
+
 from error import *
 from cstoken import *
 from lexer import *
@@ -6,6 +8,7 @@ from semantic_analyzer import *
 
 from node_visitor import *
 from memory import *
+# from built_in_functions import *
 from built_in_functions import *
 
 
@@ -241,7 +244,10 @@ class Interpreter(NodeVisitor):
         function_name = 'cs_' + node.name
         function = globals()[function_name]
         args = [self.visit(arg) for arg in node.args]
-        return function(self, node.token, args)
+        try:
+            return function(self, node.token, *args)
+        except TypeError:
+            self.error(ErrorCode.WRONG_PARAMS_NUM, node.token, f"{node.name}<> takes {len(signature(function).parameters) - 2} arguments but {len(args)} were given")
 
     def visit_NoOp(self, node):
         pass

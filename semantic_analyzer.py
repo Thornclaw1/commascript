@@ -158,11 +158,11 @@ class SemanticAnalyzer(NodeVisitor):
         self.visit(node.expr)
 
     def visit_BuiltInFunction(self, node):
-        function_name = 'cs_' + node.name + '_arg_validation'
-        function = globals()[function_name]
-        valid_arguments = function(self, node.token, node.args)
-        if not valid_arguments:
-            self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=node.token, message=f'Invalid arguments for function {node.name}')
+        # function_name = 'cs_' + node.name + '_arg_validation'
+        # function = globals()[function_name]
+        # valid_arguments = function(self, node.token, node.args)
+        # if not valid_arguments:
+        #     self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=node.token, message=f'Invalid arguments for function {node.name}')
 
         for arg in node.args:
             self.visit(arg)
