@@ -152,6 +152,13 @@ class SemanticAnalyzer(NodeVisitor):
         self.visit(node.value)
         self.leave_scope()
 
+    def visit_For(self, node):
+        self.visit(node.iterable)
+        self.enter_scope("for-block")
+        self.current_scope.insert(Symbol(0, None))
+        self.visit(node.value)
+        self.leave_scope()
+
     def visit_Return(self, node):
         if BlockType.FUNCTION not in self.block_type_stack:
             self.error(ErrorCode.INVALID_RETURN_STATEMENT, node.token, f'Return Statements should not be declared outside of a function')

@@ -237,6 +237,21 @@ class Interpreter(NodeVisitor):
             if len(self.function_stack) > 0 and self.function_stack[-1].return_value != None:
                 break
 
+    def visit_For(self, node):
+        iter = self.visit(node.iterable)
+        iter = range(iter) if isinstance(iter, int) else iter
+        try:
+            for i in iter:
+                self.enter_scope("for-block")
+                data = Data(i)
+                self.current_scope.insert(data)
+                self.visit(node.value)
+                self.leave_scope()
+                if len(self.function_stack) > 0 and self.function_stack[-1].return_value != None:
+                    break
+        except TypeError:
+            self.error(ErrorCode.TYPE_ERROR, node.token, f"'{type(iter).__name__}' is not iterable")
+
     def visit_Return(self, node):
         return self.visit(node.expr)
 

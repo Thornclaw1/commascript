@@ -186,6 +186,17 @@ class While(AST):
     __repr__ = __str__
 
 
+class For(AST):
+    def __init__(self, token, iterable, value):
+        self.token = token
+        self.iterable = iterable
+        self.value = value
+
+    def __str__(self):
+        return f"For({self.iterable}, {self.value})"
+    __repr__ = __str__
+
+
 class Return(AST):
     def __init__(self, token, expr):
         self.token = token
@@ -280,7 +291,7 @@ class Parser():
         root.children.append(self.statement())
         while self.current_token.type == TokenType.COMMA:
             self.eat(TokenType.COMMA)
-            if self.current_token.type == TokenType.EOF:
+            if self.current_token.type == TokenType.EOF or self.current_token.type == TokenType.SEMI:
                 break
             root.children.append(self.statement())
         return root
@@ -293,6 +304,8 @@ class Parser():
             return self.if_statement()
         if token.type == TokenType.WHILE:
             return self.while_statement()
+        if token.type == TokenType.FOR:
+            return self.for_statement()
         if token.type == TokenType.RETURN:
             self.eat(TokenType.RETURN)
             self.eat(TokenType.LANGLE)
@@ -389,6 +402,15 @@ class Parser():
         value = self.statement_list(BlockType.LOOP)
         self.eat(TokenType.SEMI)
         return While(token, conditional, value)
+
+    def for_statement(self):
+        token = self.current_token
+        self.eat(TokenType.FOR)
+        iterable = self.conditional()
+        self.eat(TokenType.COLON)
+        value = self.statement_list(BlockType.LOOP)
+        self.eat(TokenType.SEMI)
+        return For(token, iterable, value)
 
     def conditional(self):
         node = self.and_condition()

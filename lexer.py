@@ -151,6 +151,15 @@ class Lexer():
                     self.column
                 )
 
+            if self.check('?/'):
+                self.advance(2)
+                return Token(
+                    TokenType.FOR,
+                    TokenType.FOR.value,
+                    self.line,
+                    self.column
+                )
+
             try:
                 token_type = TokenType(self.current_char)
             except:
@@ -216,9 +225,9 @@ class Lexer():
             result += self.current_char
             self.advance()
 
-        result = result.upper()
+        # result = result.upper()
 
-        token_type = RESERVED_KEYWORDS.get(result)
+        token_type = RESERVED_KEYWORDS.get(result.upper())
         if token_type is None:
             token.type = TokenType.FUNCTION
             token.value = result

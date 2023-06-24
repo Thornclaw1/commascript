@@ -4,39 +4,43 @@ import codecs
 from error import *
 
 
-def cs_P(self, token, *objs):  # Print
+def cs_p(self, token, *objs):  # Print
     obj_vals = []
     for obj in objs:
         obj_vals.append(codecs.decode(str(obj), 'unicode_escape'))
+        # obj_vals.append(codecs.decode(str(obj), 'unicode_escape').encode('utf-8').decode('utf-8'))
+        # obj_vals.append(codecs.decode(str(obj), 'utf-8'))
+        # obj_vals.append(str(obj, encoding='utf-8'))
     print(*obj_vals)
 
 
-def cs_I(self, token, prompt):  # Input
+def cs_i(self, token, prompt):  # Input
     prompt = codecs.decode(str(prompt), 'unicode_escape') if len(prompt) > 0 else ""
+    # prompt = codecs.decode(str(prompt), 'utf-8') if len(prompt) > 0 else ""
     return input(prompt)
 
 
-def cs_RND(self, token, min, max):  # Random Int
+def cs_rnd(self, token, min, max):  # Random Int
     return random.randint(min, max)
 
 
-def cs_CS(self, token, obj):  # Cast to String
+def cs_cs(self, token, obj):  # Cast to String
     return str(obj)
 
 
-def cs_CI(self, token, obj):  # Cast to Int
+def cs_ci(self, token, obj):  # Cast to Int
     return int(obj)
 
 
-def cs_CF(self, token, obj):  # Cast to Float
+def cs_cf(self, token, obj):  # Cast to Float
     return float(obj)
 
 
-def cs_CB(self, token, obj):  # Cast to Bool
+def cs_cb(self, token, obj):  # Cast to Bool
     return bool(obj)
 
 
-def cs_A(self, token, collection, *args):  # Add to collection
+def cs_a(self, token, collection, *args):  # Add to collection
     if not isinstance(collection, (list, dict)):
         self.error(ErrorCode.PARAMETER_ERROR, token, f"A<> takes a list or dict as the first parameter, not '{type(collection).__name__}'")
 
@@ -58,7 +62,7 @@ def cs_A(self, token, collection, *args):  # Add to collection
         collection[key] = value
 
 
-def cs_RM(self, token, collection, index):
+def cs_rm(self, token, collection, index):
     if not isinstance(collection, (list, dict)):
         self.error(ErrorCode.PARAMETER_ERROR, token, f"RM<> takes a list or dict as the first parameter, not '{type(collection).__name__}'")
 
@@ -73,7 +77,7 @@ def cs_RM(self, token, collection, index):
         del collection[key]
 
 
-def cs_RMV(self, token, collection, value):
+def cs_rmv(self, token, collection, value):
     if not isinstance(collection, (list, dict)):
         self.error(ErrorCode.PARAMETER_ERROR, token, f"RMV<> takes a list or dict as the first parameter, not '{type(collection).__name__}'")
 
@@ -90,7 +94,7 @@ def cs_RMV(self, token, collection, value):
                 break
 
 
-def cs_L(self, token, collection):
+def cs_l(self, token, collection):
     if not isinstance(collection, (list, dict)):
         self.error(ErrorCode.PARAMETER_ERROR, token, f"Argument passed into L<> must be a list or dict, not '{type(collection).__name__}'")
 

@@ -8,6 +8,7 @@ class TokenType(Enum):
     IF = '?'
     ELSE = 'E'
     WHILE = '??'
+    FOR = '?/'
     IMPORT = '@'
     MODULE = '$'
     LCURLY = '{'

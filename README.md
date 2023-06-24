@@ -23,6 +23,17 @@ Now you can make a CommaScript file anywhere and run it with the command `cs fil
 
 ---
 
+## Primitive Types
+
+| Type    | Values                   | Examples          |
+| ------- | ------------------------ | ----------------- |
+| int     | any whole number         | 14, 230           |
+| float   | any decimal number       | 52.13, 3.1415     |
+| string  | any string of characters | "Hello", 'World!' |
+| boolean | True or False            | T, F              |
+
+---
+
 ## Writing the Infamous Hello World Program
 
 Start by making a new file. You can call it whatever you want, but make sure add the _.cscr_ file extension.
@@ -144,6 +155,7 @@ Now you may be wondering what conditional operators you have access to. Here's t
 | Greater Than or Equal | =+= |
 | And                   |  &  |
 | Or                    | \|  |
+| Not                   |  !  |
 
 And while we are at it, here's the mathmatical operators:
 
@@ -208,6 +220,111 @@ This while loop will run 5 times, each time printing out a number. The output sh
 
 ---
 
+## Collections
+
+If you've ever coded in another language, these should look familiar.
+
+### Lists
+
+```py
+[2,4,5,7,3]
+```
+
+### Dictionaries
+
+```py
+{'john':4, 'jane':3}
+```
+
+The above statments are all the syntax you need to create lists and dictionaries, and using `m`, you can obtain the whole list or dictionary object later in the code.
+
+To obtain a single value out of these collections, you use what is called an indexer. Using square brackets, you can obtain values with indexes or keys. Here are some examples:
+
+```py
+[2,4,5,7,3],
+m0[2], # 5 #
+m0[0]  # 2 #
+```
+
+```py
+{'john':4, 'jane':3},
+m0['john'], # 4 #
+m0['jane']  # 3 #
+```
+
+To modify these collections, there are three functions you can use: `a`, `rm`, and `rmv`. Add, Remove, and Remove by Value, respectively. I suggest reading the documentation on those functions down below in the section labeled Built-in Functions.
+
+---
+
+## For Loops
+
+For loops are similar to while loops, but instead of waiting for a condintional to no longer evaluate to true, it loops over an iterable object. The iterable objects it supports are as follows: list, dictionary, string, and even int. Here are some examples:
+
+```py
+["This", "is", "some", "important", "info"],
+?/m0:
+    p<m0>
+;
+# > This        #
+# > is          #
+# > some        #
+# > important   #
+# > info        #
+```
+
+```py
+?/["This", "is", "some", "important", "info"]:
+    p<m0>
+;
+# > This        #
+# > is          #
+# > some        #
+# > important   #
+# > info        #
+```
+
+```py
+?/{'john':2,'jane':4,'doe':6}:
+    p<m0>
+;
+# > john  #
+# > jane  #
+# > doe   #
+```
+
+```py
+?/"Hello":
+    p<m0>
+;
+# > H  #
+# > e  #
+# > l  #
+# > l  #
+# > o  #
+```
+
+As you may have guessed, `?/` is the keyword for for. It then takes in the iterable, either through a variable, or as a literal. Then the colon opens the block, and the semi-colon closes it. When iterating over the iterable, the value it is currently evaluating gets set in memory as m0, so you can access each element that way.
+
+Now you may remember that I mentioned that you could iterate over integers. And the way this works is it essentially tells the loop how many times to run the enclosed block of code. Here's an example of that:
+
+```py
+?/4:
+    p<m0>
+;
+# > 0 #
+# > 1 #
+# > 2 #
+# > 3 #
+```
+
+When looping with an integer, it will set m0 to the current loop count minus 1
+
+> You can think of it like doing `for i in range(4)` in python, because that's exactly what it's doing behind the scenes.
+
+Now there's actually one more think that you can iterate over, and it is booleans. The reason for this is because it reads True and False as 1 and 0 respectively. This functions pretty much exactly the same as an if statement without the ability to chain else-if statements. You do, however, get the added bonus of having a 0 automatically stored for you, if you wanted that for some reason. It serves very little purpose as a feature, but maybe somebody will find a use case for it.
+
+---
+
 ## Creating Custom Functions
 
 Creating a function is fairly simple. Here's a couple of examples:
@@ -251,42 +368,6 @@ m0
 ```
 
 > Just like how you can omit the number if there are no parameters, you can omit the angle brackets if you aren't passing anything in.
-
----
-
-## Collections
-
-If you've ever coded in another language, these should look familiar.
-
-Lists
-
-```py
-[2,4,5,7,3]
-```
-
-Dictionaries
-
-```py
-{'john':4, 'jane':3}
-```
-
-The above statments are all the syntax you need to create lists and dictionaries, and using `m`, you can obtain the whole list or dictionary object later in the code.
-
-To obtain a single value out of these collections, you use what is called an indexer. Using square brackets, you can obtain values with indexes or keys. Here are some examples:
-
-```py
-[2,4,5,7,3],
-m0[2], # 5 #
-m0[0]  # 2 #
-```
-
-```py
-{'john':4, 'jane':3},
-m0['john'], # 4 #
-m0['jane']  # 3 #
-```
-
-To modify these collections, there are three functions you can use: `a`, `rm`, and `rmv`. Add, Remove, and Remove by Value, respectively. I suggest reading the documentation on those functions down below in the section labeled Built-in Functions.
 
 ---
 
