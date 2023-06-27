@@ -58,6 +58,7 @@ factor : PLUS factor
        | variable
        | module
        | built_in_function
+       | NULL
 
 list : LBRACKET (conditional)? (COMMA conditional)* (COMMA)? RBRACKET
 

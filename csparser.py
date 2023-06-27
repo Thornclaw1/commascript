@@ -69,6 +69,15 @@ class Const(AST):
     __repr__ = __str__
 
 
+class Null(AST):
+    def __init__(self, token):
+        self.token = token
+
+    def __str__(self):
+        return f"Null()"
+    __repr__ = __str__
+
+
 class List(AST):
     def __init__(self, token, value):
         self.token = token
@@ -593,6 +602,9 @@ class Parser():
             return self.module()
         elif token.type == TokenType.FUNCTION or token.type == TokenType.PYTHON:
             return self.built_in_function()
+        elif token.type == TokenType.NULL:
+            self.eat(TokenType.NULL)
+            return Null(token)
         else:
             self.error(ErrorCode.UNEXPECTED_TOKEN, self.current_token, f"Unexpected character(s): {self.current_token.value}")
 

@@ -8,6 +8,7 @@ class TokenType(Enum):
     FILE_READ = 'FR'
     FILE_WRITE = 'FW'
     FILE_APPEND = 'FA'
+    NULL = 'NULL'
     IF = '?'
     ELSE = 'E'
     WHILE = '??'

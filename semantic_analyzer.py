@@ -66,6 +66,9 @@ class SemanticAnalyzer(NodeVisitor):
     def visit_Const(self, node):
         pass
 
+    def visit_Null(self, node):
+        pass
+
     def visit_List(self, node):
         for element in node.value:
             self.visit(element)

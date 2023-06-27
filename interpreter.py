@@ -13,6 +13,16 @@ from memory import *
 from built_in_functions import *
 
 
+class Function:
+    def __init__(self):
+        self.return_value = None
+        self.has_return_value = False
+
+    def set_return_value(self, return_val):
+        self.return_value = return_val
+        self.has_return_value = True
+
+
 class Interpreter(NodeVisitor):
     def __init__(self, file_path, display_debug_messages=False):
         super(Interpreter, self).__init__(display_debug_messages)
@@ -64,9 +74,9 @@ class Interpreter(NodeVisitor):
         for child in node.children:
             return_value = self.visit(child)
             if isinstance(child, Return):
-                self.function_stack[-1].return_value = return_value
+                self.function_stack[-1].set_return_value(return_value)
                 break
-            if len(self.function_stack) > 0 and self.function_stack[-1].return_value != None:
+            if len(self.function_stack) > 0 and self.function_stack[-1].has_return_value:
                 self.log(f"Leaving {node.block_type} with return value of {self.function_stack[-1].return_value}")
                 break
         # self.log(f'LEAVE block => stack: {", ".join([block_type.value for block_type in self.block_type_stack])}')
@@ -113,6 +123,9 @@ class Interpreter(NodeVisitor):
     def visit_Const(self, node):
         return node.value
 
+    def visit_Null(self, node):
+        return None
+
     def visit_List(self, node):
         return [self.visit(element) for element in node.value]
 
@@ -154,7 +167,7 @@ class Interpreter(NodeVisitor):
             for arg in node.args:
                 arg_values.append(self.visit(arg))
 
-            self.function_stack.append(var)
+            self.function_stack.append(Function())
             self.enter_scope(f"m{node.mem_loc}", self.current_scope.get_scope(node.scope_depth))
 
             for arg_val in arg_values:
@@ -163,9 +176,8 @@ class Interpreter(NodeVisitor):
             self.visit(value)
 
             self.leave_scope()
-            self.function_stack.pop()
-            return_value = var.return_value
-            var.return_value = None
+            function = self.function_stack.pop()
+            return_value = function.return_value
             return return_value
         # List, Tuple
         elif isinstance(value, (list, tuple)) and node.indexer:
@@ -243,7 +255,7 @@ class Interpreter(NodeVisitor):
             self.enter_scope("while-block")
             self.visit(node.value)
             self.leave_scope()
-            if len(self.function_stack) > 0 and self.function_stack[-1].return_value != None:
+            if len(self.function_stack) > 0 and self.function_stack[-1].has_return_value:
                 break
 
     def visit_For(self, node):
@@ -256,7 +268,7 @@ class Interpreter(NodeVisitor):
                 self.current_scope.insert(data)
                 self.visit(node.value)
                 self.leave_scope()
-                if len(self.function_stack) > 0 and self.function_stack[-1].return_value != None:
+                if len(self.function_stack) > 0 and self.function_stack[-1].has_return_value:
                     break
         except TypeError:
             self.error(ErrorCode.TYPE_ERROR, node.token, f"'{type(iter).__name__}' is not iterable")
