@@ -9,7 +9,6 @@ from semantic_analyzer import *
 
 from node_visitor import *
 from memory import *
-# from built_in_functions import *
 from built_in_functions import *
 
 
@@ -28,9 +27,7 @@ class Interpreter(NodeVisitor):
         super(Interpreter, self).__init__(display_debug_messages)
         self.current_file_path = file_path
         self.current_scope = None
-        # self.block_type_stack = []
         self.function_stack = []
-        self.open_file_stack = []
 
     def enter_scope(self, scope_name, enclosing_scope=None):
         enclosing_scope = enclosing_scope if enclosing_scope else self.current_scope
@@ -69,8 +66,6 @@ class Interpreter(NodeVisitor):
         return global_scope
 
     def visit_StatementList(self, node):
-        # self.block_type_stack.append(node.block_type)
-        # self.log(f'ENTER block => stack: {", ".join([block_type.value for block_type in self.block_type_stack])}')
         for child in node.children:
             return_value = self.visit(child)
             if isinstance(child, Return):
@@ -79,8 +74,6 @@ class Interpreter(NodeVisitor):
             if len(self.function_stack) > 0 and self.function_stack[-1].has_return_value:
                 self.log(f"Leaving {node.block_type} with return value of {self.function_stack[-1].return_value}")
                 break
-        # self.log(f'LEAVE block => stack: {", ".join([block_type.value for block_type in self.block_type_stack])}')
-        # self.block_type_stack.pop()
 
     def visit_BinOp(self, node):
         left = self.visit(node.left)
@@ -229,9 +222,7 @@ class Interpreter(NodeVisitor):
         self.enter_scope("openfile-block")
         with open(node.file_path, mode) as file:
             self.current_scope.insert(Data(file))
-            # self.open_file_stack.append(file)
             self.visit(node.value)
-            # self.open_file_stack.pop()
         self.leave_scope()
 
     def visit_Not(self, node):

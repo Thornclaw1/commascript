@@ -5,10 +5,9 @@ from cstoken import *
 class Data(object):
     def __init__(self, value):
         self.value = value
-        self.return_value = None
 
     def __str__(self):
-        return f"<Data(value = {self.value}, type = {type(self.value)}, return_value = {self.return_value})>"
+        return f"<Data(value = {self.value}, type = {type(self.value)})>"
 
     __repr__ = __str__
 

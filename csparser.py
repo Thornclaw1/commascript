@@ -357,8 +357,6 @@ class Parser():
             return self.var_decl()
         if token.type in (TokenType.FILE_READ, TokenType.FILE_WRITE, TokenType.FILE_APPEND):
             return self.open_file()
-        # if token.type == TokenType.FILE_INTERACT:
-        #     return self.file_interact()
         return self.var_decl()
 
     def import_file(self):
@@ -370,9 +368,6 @@ class Parser():
 
         if file_path in Parser.imported_files and not Parser.imported_files[file_path]:
             self.error(ErrorCode.CIRCULAR_IMPORT, token, message=f"importing {file_path} causes a circular import.")
-            # self.eat(TokenType.STR_CONST)
-            # return NoOp()
-            pass
 
         try:
             with open(file_path) as file:
