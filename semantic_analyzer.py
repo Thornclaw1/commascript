@@ -68,6 +68,10 @@ class SemanticAnalyzer(NodeVisitor):
         for element in node.value:
             self.visit(element)
 
+    def visit_Tuple(self, node):
+        for element in node.value:
+            self.visit(element)
+
     def visit_Dict(self, node):
         for key, value in node.value.items():
             self.visit(key)

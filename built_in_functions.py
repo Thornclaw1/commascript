@@ -42,14 +42,14 @@ def cs_cb(self, token, obj):  # Cast to Bool
 
 def cs_a(self, token, collection, *args):  # Add to collection
     if not isinstance(collection, (list, dict)):
-        self.error(ErrorCode.PARAMETER_ERROR, token, f"A<> takes a list or dict as the first parameter, not '{type(collection).__name__}'")
+        self.error(ErrorCode.PARAMETER_ERROR, token, f"a<> takes a list or dict as the first parameter, not '{type(collection).__name__}'")
 
     if isinstance(collection, list):
         if len(args) == 2:
             index = args[0]
             element = args[1]
             if not isinstance(index, int):
-                self.error(ErrorCode.PARAMETER_ERROR, token, f"A<> takes an int as the index to insert into, not '{type(index).__name__}'")
+                self.error(ErrorCode.PARAMETER_ERROR, token, f"a<> takes an int as the index to insert into, not '{type(index).__name__}'")
             collection.insert(index, element)
         else:
             element = args[0]
@@ -64,11 +64,11 @@ def cs_a(self, token, collection, *args):  # Add to collection
 
 def cs_rm(self, token, collection, index):
     if not isinstance(collection, (list, dict)):
-        self.error(ErrorCode.PARAMETER_ERROR, token, f"RM<> takes a list or dict as the first parameter, not '{type(collection).__name__}'")
+        self.error(ErrorCode.PARAMETER_ERROR, token, f"rm<> takes a list or dict as the first parameter, not '{type(collection).__name__}'")
 
     if isinstance(collection, list):
         if not isinstance(index, int):
-            self.error(ErrorCode.PARAMETER_ERROR, token, f"RM<> takes an int as the index to remove from, not '{type(index).__name__}'")
+            self.error(ErrorCode.PARAMETER_ERROR, token, f"rm<> takes an int as the index to remove from, not '{type(index).__name__}'")
         collection.pop(index)
     else:
         key = index
@@ -79,7 +79,7 @@ def cs_rm(self, token, collection, index):
 
 def cs_rmv(self, token, collection, value):
     if not isinstance(collection, (list, dict)):
-        self.error(ErrorCode.PARAMETER_ERROR, token, f"RMV<> takes a list or dict as the first parameter, not '{type(collection).__name__}'")
+        self.error(ErrorCode.PARAMETER_ERROR, token, f"rmv<> takes a list or dict as the first parameter, not '{type(collection).__name__}'")
 
     if isinstance(collection, list):
         if value not in collection:
@@ -94,8 +94,10 @@ def cs_rmv(self, token, collection, value):
                 break
 
 
-def cs_l(self, token, collection):
-    if not isinstance(collection, (list, dict)):
-        self.error(ErrorCode.PARAMETER_ERROR, token, f"Argument passed into L<> must be a list or dict, not '{type(collection).__name__}'")
+def cs_l(self, token, obj):
+    if not isinstance(obj, (list, dict, str, int, float)):
+        self.error(ErrorCode.PARAMETER_ERROR, token, f"Argument passed into l<> must be a list, dict, string or number, not '{type(obj).__name__}'")
 
-    return len(collection)
+    if isinstance(obj, (int, float)):
+        return len(str(obj))
+    return len(obj)

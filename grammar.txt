@@ -49,13 +49,17 @@ factor : PLUS factor
        | STR_CONST
        | BOOL_CONST
        | list 
+       | tuple
        | dictionary
        | LANGLE conditional RANGLE
        | variable
        | module
        | built_in_function
+       | python_function
 
 list : LBRACKET (conditional)? (COMMA conditional)* (COMMA)? RBRACKET
+
+tuple : LPAREN (condintional)? (COMMA condintional)* (COMMA)? RPAREN
 
 dict : LCURLY (conditional COLON conditional)? (COMMA conditional COLON conditional)* (COMMA)? RCURLY
 
@@ -64,3 +68,5 @@ variable : MEMORY (PERIOD)* INT_CONST (LANGLE (conditional)? (COMMA conditional)
 module : MODULE (PERIOD)* INT_CONST variable
 
 built_in_function : FUNCTION LANGLE conditional (COMMA conditional)* RANGLE
+
+python_function | PYTHON FUNCTION LANGLE condintional (COMMA condintional)* RANGLE

@@ -1,4 +1,5 @@
 from inspect import signature
+import builtins
 
 from error import *
 from cstoken import *
@@ -112,16 +113,13 @@ class Interpreter(NodeVisitor):
         return node.value
 
     def visit_List(self, node):
-        list = []
-        for element in node.value:
-            list.append(self.visit(element))
-        return list
+        return [self.visit(element) for element in node.value]
+
+    def visit_Tuple(self, node):
+        return tuple([self.visit(element) for element in node.value])
 
     def visit_Dict(self, node):
-        dict = {}
-        for key, value in node.value.items():
-            dict[self.visit(key)] = self.visit(value)
-        return dict
+        return {self.visit(key): self.visit(value) for (key, value) in node.value.items()}
 
     def visit_UnaryOp(self, node):
         op = node.op.type
@@ -168,11 +166,11 @@ class Interpreter(NodeVisitor):
             return_value = var.return_value
             var.return_value = None
             return return_value
-        # List
-        elif isinstance(value, list) and node.indexer:
+        # List, Tuple
+        elif isinstance(value, (list, tuple)) and node.indexer:
             index = self.visit(node.indexer)
             if not isinstance(index, int) or index < 0 or index >= len(value):
-                self.error(ErrorCode.INDEX_ERROR, token=node.token, message=f"{index} is out of range")
+                self.error(ErrorCode.INDEX_ERROR, token=node.token, message=f"{index} is out of range of the given {type(value).__name__}")
             return value[self.visit(node.indexer)]
         # Dictionary
         elif isinstance(value, dict) and node.indexer:
@@ -256,10 +254,11 @@ class Interpreter(NodeVisitor):
         return self.visit(node.expr)
 
     def visit_BuiltInFunction(self, node):
-        function_name = 'cs_' + node.name
-        function = globals()[function_name]
+        function = getattr(builtins, node.name) if node.from_python else globals()['cs_' + node.name]
         args = [self.visit(arg) for arg in node.args]
         try:
+            if node.from_python:
+                return function(*args)
             return function(self, node.token, *args)
         except TypeError:
             self.error(ErrorCode.WRONG_PARAMS_NUM, node.token, f"{node.name}<> takes {len(signature(function).parameters) - 2} arguments but {len(args)} were given")

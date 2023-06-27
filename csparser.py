@@ -1,6 +1,7 @@
 import sys
 import ast
 import inspect
+import builtins
 
 from error import *
 from cstoken import *
@@ -74,6 +75,16 @@ class List(AST):
 
     def __str__(self):
         return f"List({self.value})"
+    __repr__ = __str__
+
+
+class Tuple(AST):
+    def __init__(self, token, value):
+        self.token = token
+        self.value = value
+
+    def __str__(self):
+        return f"Tuple({self.value})"
     __repr__ = __str__
 
 
@@ -208,13 +219,14 @@ class Return(AST):
 
 
 class BuiltInFunction(AST):
-    def __init__(self, token, args):
+    def __init__(self, token, args, from_python=False):
         self.token = token
         self.name = token.value
         self.args = args
+        self.from_python = from_python
 
     def __str__(self):
-        return f"BuiltInFunction({self.name}, {self.args}"
+        return f"BuiltInFunction({'^'*self.from_python}{self.name}, {self.args}"
     __repr__ = __str__
 
 
@@ -316,7 +328,7 @@ class Parser():
             return self.import_file()
         if token.type == TokenType.SET:
             return self.var_set()
-        if token.type == TokenType.FUNCTION:
+        if token.type == TokenType.FUNCTION or token.type == TokenType.PYTHON:
             return self.built_in_function(allow_var_decl=True)
         if token.type == TokenType.SET_TO:
             self.eat(TokenType.SET_TO)
@@ -531,6 +543,8 @@ class Parser():
             return Const(token)
         elif token.type == TokenType.LBRACKET:
             return self.list()
+        elif token.type == TokenType.LPAREN:
+            return self.tuple()
         elif token.type == TokenType.LCURLY:
             return self.dict()
         elif token.type == TokenType.LANGLE:
@@ -542,7 +556,7 @@ class Parser():
             return self.variable()
         elif token.type == TokenType.MODULE:
             return self.module()
-        elif token.type == TokenType.FUNCTION:
+        elif token.type == TokenType.FUNCTION or token.type == TokenType.PYTHON:
             return self.built_in_function()
         else:
             self.error(ErrorCode.UNEXPECTED_TOKEN, self.current_token, f"Unexpected character(s): {self.current_token.value}")
@@ -560,6 +574,20 @@ class Parser():
             elements.append(self.conditional())
         self.eat(TokenType.RBRACKET)
         return List(token, elements)
+
+    def tuple(self):
+        token = self.current_token
+        elements = []
+        self.eat(TokenType.LPAREN)
+        if self.current_token.type != TokenType.RPAREN:
+            elements.append(self.conditional())
+        while self.current_token.type == TokenType.COMMA:
+            self.eat(TokenType.COMMA)
+            if self.current_token.type == TokenType.RPAREN:
+                break
+            elements.append(self.conditional())
+        self.eat(TokenType.RPAREN)
+        return Tuple(token, elements)
 
     def dict(self):
         token = self.current_token
@@ -622,7 +650,13 @@ class Parser():
         def contains_return(f):
             return any(isinstance(node, ast.Return) for node in ast.walk(ast.parse(inspect.getsource(f))))
 
+        from_python = False
+        if self.current_token.type == TokenType.PYTHON:
+            self.eat(TokenType.PYTHON)
+            from_python = True
+
         token = self.current_token
+
         self.eat(TokenType.FUNCTION)
 
         self.eat(TokenType.LANGLE)
@@ -634,14 +668,26 @@ class Parser():
                 args.append(self.conditional())
         self.eat(TokenType.RANGLE)
 
-        node = BuiltInFunction(token, args)
+        node = BuiltInFunction(token, args, from_python)
 
-        if "cs_" + token.value not in globals():
-            self.error(ErrorCode.ID_NOT_FOUND, token, f"Function '{token.value}' does not exist")
+        if from_python:
+            try:
+                getattr(builtins, token.value)
+                if allow_var_decl:  # TODO: Look for ways to check if python's built-in function's have return values or not
+                    return VarDecl(0, node)
+                return node
+            except AttributeError:
+                self.error(ErrorCode.ID_NOT_FOUND, token, f"Python function {token.value}<> does not exist")
 
-        if allow_var_decl and contains_return(globals()["cs_" + token.value]):
-            return VarDecl(0, node)
-        return node
+        else:
+            function_name = f"cs_{token.value}"
+            if function_name not in globals():
+                self.error(ErrorCode.ID_NOT_FOUND, token, f"Function {token.value}<> does not exist")
+            function = globals()[function_name]
+
+            if allow_var_decl and contains_return(function):
+                return VarDecl(0, node)
+            return node
 
 
 if __name__ == "__main__":

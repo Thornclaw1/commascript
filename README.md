@@ -413,7 +413,7 @@ $0m1 # > Hello World! #
 
 ### Function Syntax
 
-```
+```py
 function_name<arg, ...>
 ```
 
@@ -607,7 +607,7 @@ rmv<m0,4> # {'john':2,'doe':6} #
 
 ### L
 
-Returns the length of a list or dictionary
+Returns the length of a list, dictionary, string, or number
 
 #### Examples
 
@@ -621,4 +621,51 @@ l<m0> # 3 #
 l<m0> # 3 #
 ```
 
+```py
+"Hello World!",
+l<m0> # 12 #
+```
+
+```py
+1252,
+l<m0> # 4 #
+```
+
+```py
+53.12,
+l<m0> # 5 #
+```
+
 ---
+
+## Using Python's built-in functions
+
+Using `^`, you can call all of [python's built-in functions](https://docs.python.org/3/library/functions.html)
+
+> When calling Python's built-in functions, unless they are nested within another statement, they will always store the return value in memory, regardless of whether the function actually returns a value or not. For example, calling Python's print will store None in memory, while calling CommaScript's print will not.
+
+### Python Function Syntax
+
+```py
+^function_name<arg, ...>
+```
+
+#### Examples
+
+```py
+^print<"Hello World!">
+# > Hello World! #
+```
+
+```py
+^input<"Enter your name: ">
+```
+
+```py
+^all<[T, T, T]>, # True #
+^all<[T, F, T]> # False #
+```
+
+```py
+^sorted<[4,2,5,3,234,65,2]> # [2, 2, 3, 4, 5, 65, 234] #
+```
