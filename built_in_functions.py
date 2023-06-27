@@ -1,5 +1,6 @@
 import random
 import codecs
+import io
 
 from error import *
 
@@ -95,9 +96,29 @@ def cs_rmv(self, token, collection, value):
 
 
 def cs_l(self, token, obj):
-    if not isinstance(obj, (list, dict, str, int, float)):
-        self.error(ErrorCode.PARAMETER_ERROR, token, f"Argument passed into l<> must be a list, dict, string or number, not '{type(obj).__name__}'")
+    if not isinstance(obj, (list, dict, tuple, str, int, float)):
+        self.error(ErrorCode.PARAMETER_ERROR, token, f"Argument passed into l<> must be a list, dict, tuple, string or number, not '{type(obj).__name__}'")
 
     if isinstance(obj, (int, float)):
         return len(str(obj))
     return len(obj)
+
+
+def cs_wf(self, token, file, string):
+    # if len(self.open_file_stack) == 0:
+    #     self.error(ErrorCode.INVALID_FUNCTION_CALL, token, "There is no open file to write to")
+    try:
+        # self.open_file_stack[-1].write(string)
+        file.write(codecs.decode(str(string), 'unicode_escape'))
+    except:
+        self.error(ErrorCode.INVALID_FUNCTION_CALL, token, "Cannot write to a file that is opened for reading")
+
+
+def cs_rf(self, token, file):
+    # if len(self.open_file_stack) == 0:
+    #     self.error(ErrorCode.INVALID_FUNCTION_CALL, token, "There is no open file to read from")
+    try:
+        # return self.open_file_stack[-1].read()
+        return file.read()
+    except:
+        self.error(ErrorCode.INVALID_FUNCTION_CALL, token, "Cannot read from a file that is opened for writing")

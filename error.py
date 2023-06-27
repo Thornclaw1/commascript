@@ -16,6 +16,7 @@ class ErrorCode(Enum):
     VALUE_NOT_FOUND = 'Value not found'
     VARIABLE_MISSING = 'A variable seems to be missing'
     TYPE_ERROR = 'Type error'
+    INVALID_FUNCTION_CALL = 'Invalid Function Call'
 
 
 class Error(Exception):

@@ -14,8 +14,11 @@ statement : var_decl
           | built_in_function
           | SET_TO conditional
           | import_file
+          | open_file
 
 import_file : IMPORT STR_CONST
+
+open_file : (FILE_READ | FILE_WRITE | FILE_APPEND) STR_CONST COLON statement_list SEMI
 
 var_decl : conditional
 
@@ -55,7 +58,6 @@ factor : PLUS factor
        | variable
        | module
        | built_in_function
-       | python_function
 
 list : LBRACKET (conditional)? (COMMA conditional)* (COMMA)? RBRACKET
 
@@ -67,6 +69,4 @@ variable : MEMORY (PERIOD)* INT_CONST (LANGLE (conditional)? (COMMA conditional)
 
 module : MODULE (PERIOD)* INT_CONST variable
 
-built_in_function : FUNCTION LANGLE conditional (COMMA conditional)* RANGLE
-
-python_function | PYTHON FUNCTION LANGLE condintional (COMMA condintional)* RANGLE
+built_in_function : (PYTHON)? FUNCTION LANGLE conditional (COMMA conditional)* RANGLE

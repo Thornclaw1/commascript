@@ -1,3 +1,5 @@
+import os.path
+
 from error import *
 from cstoken import *
 from lexer import *
@@ -133,6 +135,14 @@ class SemanticAnalyzer(NodeVisitor):
 
         self.current_scope = current_scope
         self.current_file_path = current_file_path
+
+    def visit_OpenFile(self, node):
+        if node.file_mode != TokenType.FILE_WRITE and not os.path.isfile(node.file_path):
+            self.error(error_code=ErrorCode.FILE_NOT_FOUND, token=node.token, message=f"{node.file_path} does not exist.")
+        self.enter_scope("openfile-block")
+        self.current_scope.insert(Symbol(0, node.file_path))
+        self.visit(node.value)
+        self.leave_scope()
 
     def visit_Not(self, node):
         self.visit(node.value)

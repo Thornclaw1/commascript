@@ -28,6 +28,7 @@ class BlockType(Enum):
     FUNCTION = 'FUNCTION'
     CONDITIONAL = 'CONDITIONAL'
     LOOP = 'LOOP'
+    OPEN_FILE = 'OPEN_FILE'
 
 
 class StatementList(AST):
@@ -162,6 +163,18 @@ class ModuleGet(AST):
 
     def __str__(self):
         return f"ModuleGet({'.'*self.scope_depth}{self.mem_loc}, {self.var_node})"
+    __repr__ = __str__
+
+
+class OpenFile(AST):
+    def __init__(self, token, file_path, value):
+        self.token = token
+        self.file_mode = token.type
+        self.file_path = file_path
+        self.value = value
+
+    def __str__(self):
+        return f"OpenFile({self.file_mode}, {self.file_path}, {self.value})"
     __repr__ = __str__
 
 
@@ -328,11 +341,15 @@ class Parser():
             return self.import_file()
         if token.type == TokenType.SET:
             return self.var_set()
-        if token.type == TokenType.FUNCTION or token.type == TokenType.PYTHON:
+        if token.type in (TokenType.FUNCTION, TokenType.PYTHON):
             return self.built_in_function(allow_var_decl=True)
         if token.type == TokenType.SET_TO:
             self.eat(TokenType.SET_TO)
             return self.var_decl()
+        if token.type in (TokenType.FILE_READ, TokenType.FILE_WRITE, TokenType.FILE_APPEND):
+            return self.open_file()
+        # if token.type == TokenType.FILE_INTERACT:
+        #     return self.file_interact()
         return self.var_decl()
 
     def import_file(self):
@@ -362,6 +379,24 @@ class Parser():
 
         self.eat(TokenType.STR_CONST)
         return node
+
+    def open_file(self):
+        token = self.current_token
+        if token.type == TokenType.FILE_READ:
+            self.eat(TokenType.FILE_READ)
+        elif token.type == TokenType.FILE_WRITE:
+            self.eat(TokenType.FILE_WRITE)
+        elif token.type == TokenType.FILE_APPEND:
+            self.eat(TokenType.FILE_APPEND)
+
+        file_path = self.current_token.value
+        self.eat(TokenType.STR_CONST)
+
+        self.eat(TokenType.COLON)
+        value = self.statement_list(BlockType.OPEN_FILE)
+        self.eat(TokenType.SEMI)
+
+        return OpenFile(token, file_path, value)
 
     def var_decl(self):
         return VarDecl(0, self.conditional())

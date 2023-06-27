@@ -5,6 +5,9 @@ class TokenType(Enum):
     MEMORY = 'M'
     SET = 'S'  # Set Var
     RETURN = 'R'
+    FILE_READ = 'FR'
+    FILE_WRITE = 'FW'
+    FILE_APPEND = 'FA'
     IF = '?'
     ELSE = 'E'
     WHILE = '??'

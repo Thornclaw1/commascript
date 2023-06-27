@@ -371,6 +371,36 @@ m0
 
 ---
 
+## Manipulating Files
+
+Reading and Writing files can be a very useful tool when creating a variety of programs. Opening files in CommaScript uses three different keywords, `fr`, `fw` and `fa`. Using these keywords, it allows you to open the file in different modes, reading (`fr`), writing (`fw`) and appending (`fa`). Here are some examples:
+
+```py
+fr "test.txt":
+    # file reading code goes here #
+;
+```
+
+```py
+fw "test.txt":
+    # file writing code goes here #
+;
+```
+
+```py
+fa "test.txt":
+    # file appending code goes here #
+;
+```
+
+The file pointer gets saved in memory so you can access it while within the block using `m0`. The file will be automatically closed when leaving the block of code.
+
+Opening the file for reading allows you to use the function `rf<>` to read the contents, and opening the file for writing or appending allows you to use the function `wf<>` to write or append to the file.
+
+When opening in write mode, if the file does not exist, it will be automatically created. This is the only file mode that can create files.
+
+---
+
 ## Importing Other CommaScript Files
 
 As we all know, the larger your project becomes, the harder it is to maintain. And while hard to maintain was one of the goals of this project, I thought it only fair to allow for some organization. This also allows for modules to be built and be used in many different projects.
@@ -419,7 +449,7 @@ function_name<arg, ...>
 
 ---
 
-### P
+### p<\*obj>
 
 Prints out to the screen
 
@@ -437,7 +467,7 @@ p<"Hello", "World!">
 
 ---
 
-### I
+### i\<prompt>
 
 Takes input from the user
 
@@ -449,7 +479,7 @@ i<"Enter a number: ">
 
 ---
 
-### RND
+### rnd\<min, max>
 
 Generates a random integer between the two passed arguments
 
@@ -461,7 +491,7 @@ rnd<4,8> # 6 #
 
 ---
 
-### CS
+### cs\<obj>
 
 Casts the passed value to a string and returns the result
 
@@ -473,7 +503,7 @@ cs<540> # "540" #
 
 ---
 
-### CI
+### ci\<obj>
 
 Casts the passed value to an int and returns the result
 
@@ -485,7 +515,7 @@ ci<"138"> # 138 #
 
 ---
 
-### CF
+### cf\<obj>
 
 Casts the passed value to a float and returns the result
 
@@ -497,7 +527,7 @@ cf<"42.14"> # 42.14 #
 
 ---
 
-### CB
+### cb\<obj>
 
 Casts the passed value to a bool and returns the result
 
@@ -511,7 +541,7 @@ cb<0> # False #
 
 ---
 
-### R
+### r\<return_val>
 
 Exits the function and gives it the return value of the passed value
 
@@ -526,7 +556,7 @@ m0<4, 5> # 9 #
 
 ---
 
-### A
+### a\<collection, \*args>
 
 Appends, inserts, or modifies an item in a list or dictionary
 
@@ -569,7 +599,7 @@ a<m0,'john',10> # {'john':10,'jane':4,'doe':6} #
 
 ---
 
-### RM
+### rm\<collection, index/key>
 
 Removes an index/key from a list or dictionary
 
@@ -587,7 +617,7 @@ rm<m0,'jane'> # {'john':2,'doe':6} #
 
 ---
 
-### RMV
+### rmv\<collection, value>
 
 Removes an element/value from a list or dictionary
 
@@ -605,9 +635,9 @@ rmv<m0,4> # {'john':2,'doe':6} #
 
 ---
 
-### L
+### l\<obj>
 
-Returns the length of a list, dictionary, string, or number
+Returns the length of a list, dictionary, tuple, string, or number
 
 #### Examples
 
@@ -634,6 +664,40 @@ l<m0> # 4 #
 ```py
 53.12,
 l<m0> # 5 #
+```
+
+---
+
+### wf\<file, string>
+
+Writes the given string to the given file. The given file must be opened in either write or append mode.
+
+#### Examples
+
+```py
+fw "example.txt":
+    wf<m0, "Hello, every-nyan. How are you? Fine, thank you."> # Overwriting example.txt's file contents #
+;,
+```
+
+```py
+fa "example.txt":
+    wf<m0, "Hello, every-nyan. How are you? Fine, thank you."> # Appending to the end of example.txt's file contents #
+;,
+```
+
+---
+
+### rf\<file>
+
+Gets and returns the given file's contents. The given file must be opened in read mode.
+
+#### Example
+
+```py
+fr "example.txt":
+    rf<m0> # Gets and returns example.txt's file contents
+;,
 ```
 
 ---

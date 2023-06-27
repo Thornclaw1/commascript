@@ -64,7 +64,7 @@ class Lexer():
             if self.current_char == "'" or self.current_char == '"':
                 return self.string()
 
-            if self.current_char.upper() == 'T' or self.current_char.upper() == 'F':
+            if self.current_char.upper() == 'T' or self.current_char.upper() == 'F' and self.peek().upper() not in ('R', 'W', 'A', 'I'):
                 return self.boolean()
 
             if self.current_char.isalpha():
@@ -224,8 +224,6 @@ class Lexer():
         while self.current_char and self.current_char.isalpha():
             result += self.current_char
             self.advance()
-
-        # result = result.upper()
 
         token_type = RESERVED_KEYWORDS.get(result.upper())
         if token_type is None:

@@ -20,6 +20,7 @@ class Interpreter(NodeVisitor):
         self.current_scope = None
         # self.block_type_stack = []
         self.function_stack = []
+        self.open_file_stack = []
 
     def enter_scope(self, scope_name, enclosing_scope=None):
         enclosing_scope = enclosing_scope if enclosing_scope else self.current_scope
@@ -210,6 +211,16 @@ class Interpreter(NodeVisitor):
         self.current_file_path = current_file_path
 
         return value
+
+    def visit_OpenFile(self, node):
+        mode = 'r' if node.file_mode == TokenType.FILE_READ else 'w' if node.file_mode == TokenType.FILE_WRITE else 'a'
+        self.enter_scope("openfile-block")
+        with open(node.file_path, mode) as file:
+            self.current_scope.insert(Data(file))
+            # self.open_file_stack.append(file)
+            self.visit(node.value)
+            # self.open_file_stack.pop()
+        self.leave_scope()
 
     def visit_Not(self, node):
         return not self.visit(node.value)
