@@ -16,7 +16,7 @@ statement : var_decl
           | import_file
           | open_file
 
-import_file : IMPORT STR_CONST
+import_file : IMPORT (PYTHON)? STR_CONST
 
 open_file : (FILE_READ | FILE_WRITE | FILE_APPEND) STR_CONST COLON statement_list SEMI
 
@@ -68,6 +68,8 @@ dict : LCURLY (conditional COLON conditional)? (COMMA conditional COLON conditio
 
 variable : MEMORY (PERIOD)* INT_CONST (LANGLE (conditional)? (COMMA conditional)* RANGLE | LBRACKET conditional RBRACKET)?
 
-module : MODULE (PERIOD)* INT_CONST variable
+module : MODULE (PERIOD)* INT_CONST (variable | python_module_function)
 
-built_in_function : (PYTHON)? FUNCTION LANGLE conditional (COMMA conditional)* RANGLE
+built_in_function : (PYTHON)? FUNCTION LANGLE (conditional)? (COMMA conditional)* RANGLE
+
+python_module_function : FUNCTION (LANGLE (conditional)? (COMMA conditional)* RANGLE)?

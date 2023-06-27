@@ -90,8 +90,12 @@ class Memory(object):
             self._memory[mem_loc].value = value
 
     def import_scope(self, scope):
-        self.log(f"Import Module {scope.file_path}")
-        Memory.imported_scopes[scope.file_path] = scope
+        try:
+            self.log(f"Import Module {scope.file_path}")
+            Memory.imported_scopes[scope.file_path] = scope
+        except:
+            self.log(f"Import Module {scope.__name__}")
+            Memory.imported_scopes[scope.__name__] = scope
 
     def add_imported_scope(self, file_path):
         self.log(f'Add Module: {file_path}')

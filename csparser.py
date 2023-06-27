@@ -153,13 +153,13 @@ class VarGet(AST):
 
 
 class Import(AST):
-    def __init__(self, token, file_path):
+    def __init__(self, token, file_path, from_python=False):
         self.token = token
         self.file_path = file_path
-        # self.imported_tree = imported_tree
+        self.from_python = from_python
 
     def __str__(self):
-        return f"Import({self.file_path})"
+        return f"Import({'^'*self.from_python}{self.file_path})"
     __repr__ = __str__
 
 
@@ -248,8 +248,30 @@ class BuiltInFunction(AST):
         self.from_python = from_python
 
     def __str__(self):
-        return f"BuiltInFunction({'^'*self.from_python}{self.name}, {self.args}"
+        return f"BuiltInFunction({'^'*self.from_python}{self.name}, {self.args})"
     __repr__ = __str__
+
+
+class GetAttr(AST):
+    def __init__(self, token):
+        self.token = token
+        self.name = token.value
+
+    def __str__(self):
+        return f"GetAttr({self.name})"
+    __repr__ = __str__
+
+
+# class PythonModuleFunction(AST):
+#     def __init__(self, token, args):
+#         self.token = token
+#         self.name = token.value
+#         # self.module = module
+#         self.args = args
+
+#     def __str__(self):
+#         return f"PythonModuleFunction({self.name}, {self.args}"
+#     __repr__ = __str__
 
 
 class NoOp(AST):
@@ -363,23 +385,30 @@ class Parser():
         token = self.current_token
         self.eat(TokenType.IMPORT)
 
+        from_python = False
+        if self.current_token.type == TokenType.PYTHON:
+            self.eat(TokenType.PYTHON)
+            from_python = True
+
         file_path = self.current_token.value
-        file_path = file_path + ".cscr" if ".cscr" not in file_path else file_path
 
-        if file_path in Parser.imported_files and not Parser.imported_files[file_path]:
-            self.error(ErrorCode.CIRCULAR_IMPORT, token, message=f"importing {file_path} causes a circular import.")
+        if not from_python:
+            file_path = file_path + ".cscr" if ".cscr" not in file_path else file_path
 
-        try:
-            with open(file_path) as file:
-                lexer = Lexer(file.read())
-        except:
-            self.error(error_code=ErrorCode.FILE_NOT_FOUND, token=token, message=f"{file_path} does not exist.")
-        parser = Parser(lexer, file_path, self.display_debug_messages)
-        self.log('')
-        self.log(parser.parse())
-        self.log('')
+            if file_path in Parser.imported_files and not Parser.imported_files[file_path]:
+                self.error(ErrorCode.CIRCULAR_IMPORT, token, message=f"importing {file_path} causes a circular import.")
 
-        node = Import(token, file_path)
+            try:
+                with open(file_path) as file:
+                    lexer = Lexer(file.read())
+            except:
+                self.error(error_code=ErrorCode.FILE_NOT_FOUND, token=token, message=f"{file_path} does not exist.")
+            parser = Parser(lexer, file_path, self.display_debug_messages)
+            self.log('')
+            self.log(parser.parse())
+            self.log('')
+
+        node = Import(token, file_path, from_python)
 
         self.eat(TokenType.STR_CONST)
         return node
@@ -685,7 +714,10 @@ class Parser():
             scope_depth += 1
         mem_loc = self.current_token.value
         self.eat(TokenType.INT_CONST)
-        var = self.variable()
+        if self.current_token.type == TokenType.MEMORY:
+            var = self.variable()
+        else:
+            var = self.python_module_function()
         return ModuleGet(token, scope_depth, mem_loc, var)
 
     def built_in_function(self, allow_var_decl=False):
@@ -730,6 +762,26 @@ class Parser():
             if allow_var_decl and contains_return(function):
                 return VarDecl(0, node)
             return node
+
+    def python_module_function(self):
+        token = self.current_token
+        self.eat(TokenType.FUNCTION)
+
+        if self.current_token.type == TokenType.LANGLE:
+            self.eat(TokenType.LANGLE)
+            args = []
+            if self.current_token.type != TokenType.RANGLE:
+                args.append(self.conditional())
+                while self.current_token.type == TokenType.COMMA:
+                    self.eat(TokenType.COMMA)
+                    args.append(self.conditional())
+            self.eat(TokenType.RANGLE)
+
+            node = BuiltInFunction(token, args, True)
+        else:
+            node = GetAttr(token)
+
+        return node
 
 
 if __name__ == "__main__":

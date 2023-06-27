@@ -1,5 +1,7 @@
 from inspect import signature
+from types import ModuleType
 import builtins
+import importlib
 
 from error import *
 from cstoken import *
@@ -28,6 +30,7 @@ class Interpreter(NodeVisitor):
         self.current_file_path = file_path
         self.current_scope = None
         self.function_stack = []
+        self.current_python_module = builtins
 
     def enter_scope(self, scope_name, enclosing_scope=None):
         enclosing_scope = enclosing_scope if enclosing_scope else self.current_scope
@@ -150,6 +153,8 @@ class Interpreter(NodeVisitor):
         self.current_scope.set(node.scope_depth, node.mem_loc, value)
 
     def visit_VarGet(self, node):
+        if self.current_python_module != builtins:
+            self.error(ErrorCode.INVALID_VARIABLE, node.token, f'A CommaScript memory getter cannot be used to get variables/functions from a python module')
         var = self.current_scope.get(node.scope_depth, node.mem_loc)
         if not var:
             self.error(ErrorCode.VARIABLE_MISSING, node.token, f'm{"."*node.scope_depth}{node.mem_loc} seem\'s to have been lost in the darkness that is CommaScript.')
@@ -190,6 +195,12 @@ class Interpreter(NodeVisitor):
             return value
 
     def visit_Import(self, node):
+        if node.from_python:
+            if node.file_path not in Memory.imported_scopes:
+                self.current_scope.import_scope(importlib.import_module(node.file_path))
+            self.current_scope.add_imported_scope(node.file_path)
+            return
+
         current_file_path = self.current_file_path
         self.current_file_path = node.file_path
 
@@ -203,17 +214,23 @@ class Interpreter(NodeVisitor):
     def visit_ModuleGet(self, node):
         module = self.current_scope.get_imported_scope(node.scope_depth, node.mem_loc)
 
-        current_scope = self.current_scope
-        current_file_path = self.current_file_path
-        self.current_scope = module
-        self.current_file_path = module.file_path
-        self.log(f'ENTER module scope: {self.current_scope.file_path} : {self.current_scope.scope_name}')
+        if type(module) is ModuleType:
+            self.current_python_module = module
+            value = self.visit(node.var_node)
+            self.current_python_module = builtins
 
-        value = self.visit(node.var_node)
+        else:
+            current_scope = self.current_scope
+            current_file_path = self.current_file_path
+            self.current_scope = module
+            self.current_file_path = module.file_path
+            self.log(f'ENTER module scope: {self.current_scope.file_path} : {self.current_scope.scope_name}')
 
-        self.log(f'LEAVE module scope: {self.current_scope.file_path} : {self.current_scope.scope_name} -> {current_scope.file_path} : {current_scope.scope_name}')
-        self.current_scope = current_scope
-        self.current_file_path = current_file_path
+            value = self.visit(node.var_node)
+
+            self.log(f'LEAVE module scope: {self.current_scope.file_path} : {self.current_scope.scope_name} -> {current_scope.file_path} : {current_scope.scope_name}')
+            self.current_scope = current_scope
+            self.current_file_path = current_file_path
 
         return value
 
@@ -268,7 +285,7 @@ class Interpreter(NodeVisitor):
         return self.visit(node.expr)
 
     def visit_BuiltInFunction(self, node):
-        function = getattr(builtins, node.name) if node.from_python else globals()['cs_' + node.name]
+        function = getattr(self.current_python_module, node.name) if node.from_python else globals()['cs_' + node.name]
         args = [self.visit(arg) for arg in node.args]
         try:
             if node.from_python:
@@ -276,6 +293,18 @@ class Interpreter(NodeVisitor):
             return function(self, node.token, *args)
         except TypeError:
             self.error(ErrorCode.WRONG_PARAMS_NUM, node.token, f"{node.name}<> takes {len(signature(function).parameters) - 2} arguments but {len(args)} were given")
+
+    def visit_GetAttr(self, node):
+        try:
+            return getattr(self.current_python_module, node.name)
+        except:
+            self.error(ErrorCode.INVALID_VARIABLE, node.token, f"'{self.current_python_module}' has no attribute '{node.name}'")
+
+    # def visit_PythonModuleFunction(self, node):
+    #     function = getattr(self.current_python_module, node.name)
+    #     args = [self.visit(arg) for arg in node.args]
+    #     try:
+    #         return function(*args)
 
     def visit_NoOp(self, node):
         pass

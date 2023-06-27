@@ -708,6 +708,8 @@ Using `^`, you can call all of [python's built-in functions](https://docs.python
 
 > When calling Python's built-in functions, unless they are nested within another statement, they will always store the return value in memory, regardless of whether the function actually returns a value or not. For example, calling Python's print will store None in memory, while calling CommaScript's print will not.
 
+> This has only been lightly tested, so use with caution
+
 ### Python Function Syntax
 
 ```py
@@ -733,3 +735,27 @@ Using `^`, you can call all of [python's built-in functions](https://docs.python
 ```py
 ^sorted<[4,2,5,3,234,65,2]> # [2, 2, 3, 4, 5, 65, 234] #
 ```
+
+---
+
+## Using Python Modules
+
+Like using python's built-in functions, using `^` will give you access to python's modules. Here are some examples:
+
+```py
+@^'random',
+p<$0randint<1,100>>
+# > 36 #
+```
+
+```py
+@^'math',
+p<$0pi>
+# > 3.141592653589793 #
+```
+
+Putting a `^` after the `@` for importing, will tell the program that you are importing a python module, and not a CommaScript file. To use the imported modules, it's the same as using imported files. `$` followed by the index of which import you want, followed by the function or attribute you want to use.
+
+> This has only been lightly tested, so use with caution
+
+---

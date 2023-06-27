@@ -11,6 +11,7 @@ class ErrorCode(Enum):
     MODULE_NOT_FOUND = 'Module not found'
     CIRCULAR_IMPORT = 'Circular import'
     INVALID_INDEXER = 'Invalid use of an indexer'
+    INVALID_VARIABLE = 'Invalid use of a variable'
     INDEX_ERROR = 'Index out of range'
     KEY_NOT_FOUND = 'Key not found'
     VALUE_NOT_FOUND = 'Value not found'

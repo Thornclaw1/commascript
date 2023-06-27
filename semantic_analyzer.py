@@ -86,7 +86,6 @@ class SemanticAnalyzer(NodeVisitor):
         self.visit(node.expr)
 
     def visit_VarDecl(self, node):
-        self.current_scope.insert(Symbol(node.params_num, node.value))
         if isinstance(node.value, StatementList):
             self.enter_scope(f"m{self.current_scope.length() - 1}")
             for _ in range(node.params_num):
@@ -95,6 +94,7 @@ class SemanticAnalyzer(NodeVisitor):
             self.leave_scope()
         else:
             self.visit(node.value)
+        self.current_scope.insert(Symbol(node.params_num, node.value))
 
     def visit_VarSet(self, node):
         value = self.visit(node.value)
@@ -110,6 +110,12 @@ class SemanticAnalyzer(NodeVisitor):
             self.visit(arg)
 
     def visit_Import(self, node):
+        if node.from_python:
+            if node.file_path not in ScopedSymbolTable.imported_scopes:
+                self.current_scope.import_scope(node)
+            self.current_scope.add_imported_scope(node.file_path)
+            return
+
         current_file_path = self.current_file_path
         self.current_file_path = node.file_path
 
@@ -126,15 +132,18 @@ class SemanticAnalyzer(NodeVisitor):
         if not module:
             self.error(ErrorCode.MODULE_NOT_FOUND, node.token, message=f"${'.'*node.scope_depth}{node.mem_loc} does not exist")
 
-        current_scope = self.current_scope
-        current_file_path = self.current_file_path
-        self.current_scope = module
-        self.current_file_path = module.file_path
+        if isinstance(module, Import):
+            self.visit(node.var_node)
+        else:
+            current_scope = self.current_scope
+            current_file_path = self.current_file_path
+            self.current_scope = module
+            self.current_file_path = module.file_path
 
-        self.visit(node.var_node)
+            self.visit(node.var_node)
 
-        self.current_scope = current_scope
-        self.current_file_path = current_file_path
+            self.current_scope = current_scope
+            self.current_file_path = current_file_path
 
     def visit_OpenFile(self, node):
         if node.file_mode != TokenType.FILE_WRITE and not os.path.isfile(node.file_path):
@@ -181,6 +190,13 @@ class SemanticAnalyzer(NodeVisitor):
     def visit_BuiltInFunction(self, node):
         for arg in node.args:
             self.visit(arg)
+
+    def visit_GetAttr(self, node):
+        pass
+
+    # def visit_PythonModuleFunction(self, node):
+    #     for arg in node.args:
+    #         self.visit(arg)
 
     def visit_NoOp(self, node):
         pass
