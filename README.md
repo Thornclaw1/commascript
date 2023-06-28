@@ -36,7 +36,7 @@ Now you can make a CommaScript file anywhere and run it with the command `cs fil
 
 ## Writing the Infamous Hello World Program
 
-Start by making a new file. You can call it whatever you want, but make sure add the _.cscr_ file extension.
+Start by making a new file. You can call it whatever you want, but make sure to add the _.cscr_ file extension.
 
 Now to run the file, you will type `cs name_of_file.cscr`, and you will see it output 'Hello World!' to the console.
 
@@ -236,7 +236,13 @@ If you've ever coded in another language, these should look familiar.
 {'john':4, 'jane':3}
 ```
 
-The above statments are all the syntax you need to create lists and dictionaries, and using `m`, you can obtain the whole list or dictionary object later in the code.
+### Tuples
+
+```py
+(5,2,9,67)
+```
+
+The above statments are all the syntax you need to create lists, dictionaries and tuples, and using `m`, you can obtain the whole collection object later in the code.
 
 To obtain a single value out of these collections, you use what is called an indexer. Using square brackets, you can obtain values with indexes or keys. Here are some examples:
 
@@ -253,6 +259,8 @@ m0['jane']  # 3 #
 ```
 
 To modify these collections, there are three functions you can use: `a`, `rm`, and `rmv`. Add, Remove, and Remove by Value, respectively. I suggest reading the documentation on those functions down below in the section labeled Built-in Functions.
+
+> Note: Tuples are immutable, which means you can not modify the collection after creating it.
 
 ---
 
@@ -368,6 +376,26 @@ m0
 ```
 
 > Just like how you can omit the number if there are no parameters, you can omit the angle brackets if you aren't passing anything in.
+
+### Return statements
+
+Return statements are statements that can only be used when inside of a function block.
+
+Using these statements allows you to return values out of functions to be used else where.
+
+Here's an example:
+
+```py
+2:
+    m0 + m1 * m0,
+    r<m2>
+;,
+m0<5,8>,
+p<m1>
+# > 45 #
+```
+
+The return statement has the syntax of a function call. In this example, we are passing 5 and 8 to the function, it's doing some math, and then returning the result. That result then get's stored in memory, and then we are printing it out.
 
 ---
 
