@@ -187,6 +187,14 @@ class SemanticAnalyzer(NodeVisitor):
             self.error(ErrorCode.INVALID_RETURN_STATEMENT, node.token, f'Return Statements should not be declared outside of a function')
         self.visit(node.expr)
 
+    def visit_Break(self, node):
+        if BlockType.LOOP not in self.block_type_stack:
+            self.error(ErrorCode.INVALID_BREAK_STATEMENT, node.token, f'Break Statements should not be declared outside of a loop')
+
+    def visit_Continue(self, node):
+        if BlockType.LOOP not in self.block_type_stack:
+            self.error(ErrorCode.INVALID_CONTINUE_STATEMENT, node.token, f'Continue Statements should not be declared outside of a loop')
+
     def visit_BuiltInFunction(self, node):
         for arg in node.args:
             self.visit(arg)

@@ -24,12 +24,19 @@ class Function:
         self.has_return_value = True
 
 
+class Loop:
+    def __init__(self):
+        self.breaking = False
+        self.continuing = False
+
+
 class Interpreter(NodeVisitor):
     def __init__(self, file_path, display_debug_messages=False):
         super(Interpreter, self).__init__(display_debug_messages)
         self.current_file_path = file_path
         self.current_scope = None
         self.function_stack = []
+        self.loop_stack = []
         self.current_python_module = builtins
 
     def enter_scope(self, scope_name, enclosing_scope=None):
@@ -74,9 +81,22 @@ class Interpreter(NodeVisitor):
             if isinstance(child, Return):
                 self.function_stack[-1].set_return_value(return_value)
                 break
+            if isinstance(child, Break):
+                self.loop_stack[-1].breaking = True
+                break
+            if isinstance(child, Continue):
+                self.loop_stack[-1].continuing = True
+                break
             if len(self.function_stack) > 0 and self.function_stack[-1].has_return_value:
                 self.log(f"Leaving {node.block_type} with return value of {self.function_stack[-1].return_value}")
                 break
+            if len(self.loop_stack) > 0:
+                if self.loop_stack[-1].breaking:
+                    self.log(f"Breaking out of {node.block_type}")
+                    break
+                elif self.loop_stack[-1].continuing:
+                    self.log(f"Continuing out of {node.block_type}")
+                    break
 
     def visit_BinOp(self, node):
         left = self.visit(node.left)
@@ -259,30 +279,46 @@ class Interpreter(NodeVisitor):
                 self.leave_scope()
 
     def visit_While(self, node):
+        loop = Loop()
+        self.loop_stack.append(loop)
         while self.visit(node.conditional):
+            loop.continuing = False
             self.enter_scope("while-block")
             self.visit(node.value)
             self.leave_scope()
-            if len(self.function_stack) > 0 and self.function_stack[-1].has_return_value:
+            if (len(self.function_stack) > 0 and self.function_stack[-1].has_return_value or
+                    len(self.loop_stack) > 0 and self.loop_stack[-1].breaking):
                 break
+        self.loop_stack.pop()
 
     def visit_For(self, node):
         iter = self.visit(node.iterable)
         iter = range(iter) if isinstance(iter, int) else iter
+        loop = Loop()
+        self.loop_stack.append(loop)
         try:
             for i in iter:
+                loop.continuing = False
                 self.enter_scope("for-block")
                 data = Data(i)
                 self.current_scope.insert(data)
                 self.visit(node.value)
                 self.leave_scope()
-                if len(self.function_stack) > 0 and self.function_stack[-1].has_return_value:
+                if (len(self.function_stack) > 0 and self.function_stack[-1].has_return_value or
+                        len(self.loop_stack) > 0 and self.loop_stack[-1].breaking):
                     break
         except TypeError:
             self.error(ErrorCode.TYPE_ERROR, node.token, f"'{type(iter).__name__}' is not iterable")
+        self.loop_stack.pop()
 
     def visit_Return(self, node):
         return self.visit(node.expr)
+
+    def visit_Break(self, node):
+        pass
+
+    def visit_Continue(self, node):
+        pass
 
     def visit_BuiltInFunction(self, node):
         function = getattr(self.current_python_module, node.name) if node.from_python else globals()['cs_' + node.name]

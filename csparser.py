@@ -240,6 +240,24 @@ class Return(AST):
     __repr__ = __str__
 
 
+class Break(AST):
+    def __init__(self, token):
+        self.token = token
+
+    def __str__(self):
+        return f"Break()"
+    __repr__ = __str__
+
+
+class Continue(AST):
+    def __init__(self, token):
+        self.token = token
+
+    def __str__(self):
+        return f"Continue()"
+    __repr__ = __str__
+
+
 class BuiltInFunction(AST):
     def __init__(self, token, args, from_python=False):
         self.token = token
@@ -260,18 +278,6 @@ class GetAttr(AST):
     def __str__(self):
         return f"GetAttr({self.name})"
     __repr__ = __str__
-
-
-# class PythonModuleFunction(AST):
-#     def __init__(self, token, args):
-#         self.token = token
-#         self.name = token.value
-#         # self.module = module
-#         self.args = args
-
-#     def __str__(self):
-#         return f"PythonModuleFunction({self.name}, {self.args}"
-#     __repr__ = __str__
 
 
 class NoOp(AST):
@@ -364,10 +370,19 @@ class Parser():
             return self.for_statement()
         if token.type == TokenType.RETURN:
             self.eat(TokenType.RETURN)
-            self.eat(TokenType.LANGLE)
-            node = Return(token, self.conditional())
-            self.eat(TokenType.RANGLE)
+            if self.current_token.type == TokenType.LANGLE:
+                self.eat(TokenType.LANGLE)
+                node = Return(token, self.conditional())
+                self.eat(TokenType.RANGLE)
+            else:
+                node = Return(token, Null(token))
             return node
+        if token.type == TokenType.BREAK:
+            self.eat(TokenType.BREAK)
+            return Break(token)
+        if token.type == TokenType.CONTINUE:
+            self.eat(TokenType.CONTINUE)
+            return Continue(token)
         if token.type == TokenType.IMPORT:
             return self.import_file()
         if token.type == TokenType.SET:

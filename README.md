@@ -333,6 +333,55 @@ Now there's actually one more think that you can iterate over, and it is boolean
 
 ---
 
+## Break
+
+Using the keyword `b`, you can break out of both while and for loops. Here's some examples:
+
+```py
+4,
+?? m0 =+ 0:
+    p<m.0>,
+    ? m.0 = 2:
+        b
+    ;,
+    s.0 => m.0 - 1
+;
+# > 4 #
+# > 3 #
+# > 2 #
+```
+
+```py
+?/6:
+    p<m0>,
+    ? m0 = 2:
+        b
+    ;
+;
+# > 0 #
+# > 1 #
+# > 2 #
+```
+
+---
+
+## Continue
+
+Using the keyword `c`, you can stop a current run through a loop and continue on to the next.
+
+```py
+?/20:
+    ? m0 % 2 = 0:
+        c
+    ;,
+    p<m0>
+;
+```
+
+This will print the numbers 0 to 19, skipping all even numbers.
+
+---
+
 ## Creating Custom Functions
 
 Creating a function is fairly simple. Here's a couple of examples:

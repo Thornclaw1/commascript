@@ -10,7 +10,9 @@ statement : var_decl
           | if_statement
           | while_statement
           | for_statement
-          | RETURN LANGLE conditional RANGLE
+          | RETURN (LANGLE conditional RANGLE)?
+          | BREAK
+          | CONTINUE
           | built_in_function
           | SET_TO conditional
           | import_file

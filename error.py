@@ -7,6 +7,8 @@ class ErrorCode(Enum):
     WRONG_PARAMS_NUM = 'Wrong number of parameters'
     PARAMETER_ERROR = 'Parameter error'
     INVALID_RETURN_STATEMENT = 'Invalid Return Statement'
+    INVALID_BREAK_STATEMENT = 'Invalid Break Statement'
+    INVALID_CONTINUE_STATEMENT = 'Invalid Continue Statement'
     FILE_NOT_FOUND = 'File not found'
     MODULE_NOT_FOUND = 'Module not found'
     CIRCULAR_IMPORT = 'Circular import'
