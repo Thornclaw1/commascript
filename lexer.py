@@ -88,8 +88,8 @@ class Lexer():
                     self.column
                 )
 
-            if self.check('=-='):
-                self.advance(3)
+            if self.check('<='):
+                self.advance(2)
                 return Token(
                     TokenType.LTHAN_OR_EQUAL,
                     TokenType.LTHAN_OR_EQUAL.value,
@@ -97,8 +97,8 @@ class Lexer():
                     self.column
                 )
 
-            if self.check('=+='):
-                self.advance(3)
+            if self.check('>='):
+                self.advance(2)
                 return Token(
                     TokenType.GTHAN_OR_EQUAL,
                     TokenType.GTHAN_OR_EQUAL.value,
@@ -106,7 +106,7 @@ class Lexer():
                     self.column
                 )
 
-            if self.check('=-'):
+            if self.check('</'):
                 self.advance(2)
                 return Token(
                     TokenType.LTHAN,
@@ -115,7 +115,7 @@ class Lexer():
                     self.column
                 )
 
-            if self.check('=+'):
+            if self.check('>/'):
                 self.advance(2)
                 return Token(
                     TokenType.GTHAN,
