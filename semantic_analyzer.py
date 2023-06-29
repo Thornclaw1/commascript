@@ -34,6 +34,7 @@ class SemanticAnalyzer(NodeVisitor):
         self.current_scope = self.current_scope.enclosing_scope
 
     def error(self, error_code, token, message=''):
+        self.log(f"------------- SCOPE WHEN ERROR -------------\n{self.current_scope}\n------------- SCOPE WHEN ERROR -------------")
         raise SemanticError(
             error_code=error_code,
             token=token,
@@ -88,13 +89,16 @@ class SemanticAnalyzer(NodeVisitor):
     def visit_VarDecl(self, node):
         if isinstance(node.value, StatementList):
             self.enter_scope(f"m{self.current_scope.length() - 1}")
+            default_param_values = [self.visit(val) for val in node.default_param_vals]
             for _ in range(node.params_num):
-                self.current_scope.insert(Symbol(0, None))
+                self.current_scope.insert(Symbol(0, 0, None))
+            for val in default_param_values:
+                self.current_scope.insert(Symbol(0, 0, val))
             self.visit(node.value)
             self.leave_scope()
         else:
             self.visit(node.value)
-        self.current_scope.insert(Symbol(node.params_num, node.value))
+        self.current_scope.insert(Symbol(node.params_num, len(node.default_param_vals), node.value))
 
     def visit_VarSet(self, node):
         value = self.visit(node.value)
@@ -104,7 +108,7 @@ class SemanticAnalyzer(NodeVisitor):
         symbol = self.current_scope.lookup(node.scope_depth, node.mem_loc)
         if not symbol:
             self.error(error_code=ErrorCode.ID_NOT_FOUND, token=node.token, message=f"m{'.'*node.scope_depth}{node.mem_loc} does not exist")
-        if symbol.params_num != len(node.args):
+        if len(node.args) < symbol.params_num or len(node.args) > symbol.params_num + symbol.default_value_num:
             self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=node.token, message=f"{len(node.args)} {'was' if len(node.args) == 1 else 'were'} passed, but {symbol.params_num} {'was' if symbol.params_num == 1 else 'were'} expected")
         for arg in node.args:
             self.visit(arg)
@@ -149,7 +153,7 @@ class SemanticAnalyzer(NodeVisitor):
         if node.file_mode != TokenType.FILE_WRITE and not os.path.isfile(node.file_path):
             self.error(error_code=ErrorCode.FILE_NOT_FOUND, token=node.token, message=f"{node.file_path} does not exist.")
         self.enter_scope("openfile-block")
-        self.current_scope.insert(Symbol(0, node.file_path))
+        self.current_scope.insert(Symbol(0, 0, node.file_path))
         self.visit(node.value)
         self.leave_scope()
 
@@ -178,7 +182,7 @@ class SemanticAnalyzer(NodeVisitor):
     def visit_For(self, node):
         self.visit(node.iterable)
         self.enter_scope("for-block")
-        self.current_scope.insert(Symbol(0, None))
+        self.current_scope.insert(Symbol(0, 0, None))
         self.visit(node.value)
         self.leave_scope()
 

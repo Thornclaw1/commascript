@@ -160,6 +160,15 @@ class Lexer():
                     self.column
                 )
 
+            if self.check('||'):
+                self.advance(2)
+                return Token(
+                    TokenType.PARAM_SEP,
+                    TokenType.PARAM_SEP.value,
+                    self.line,
+                    self.column
+                )
+
             try:
                 token_type = TokenType(self.current_char)
             except:

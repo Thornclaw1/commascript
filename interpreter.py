@@ -161,7 +161,7 @@ class Interpreter(NodeVisitor):
     def visit_VarDecl(self, node):
         # Function
         if isinstance(node.value, StatementList):
-            data = Data(node.value)
+            data = FunctionData(node.params_num, node.default_param_vals, node.value)
             self.current_scope.insert(data)
         else:
             value = self.visit(node.value)
@@ -181,16 +181,18 @@ class Interpreter(NodeVisitor):
         value = var.value
         # Function
         if isinstance(value, StatementList):
-            arg_values = []
-            for arg in node.args:
-                arg_values.append(self.visit(arg))
+            arg_values = [self.visit(arg) for arg in node.args]
 
             self.function_stack.append(Function())
             self.enter_scope(f"m{node.mem_loc}", self.current_scope.get_scope(node.scope_depth))
 
+            for default_val in var.default_param_vals[var.params_num - len(arg_values)::]:
+                arg_values.append(self.visit(default_val))
+
             for arg_val in arg_values:
                 data = Data(arg_val)
                 self.current_scope.insert(data)
+
             self.visit(value)
 
             self.leave_scope()

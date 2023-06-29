@@ -26,7 +26,7 @@ var_decl : conditional
 
 var_set : SET (PERIOD)* INT_CONST SET_TO conditional
 
-function_decl : (INT_CONST)? COLON statement_list SEMI
+function_decl : (INT_CONST)? (PARAM_SEP (condintional)? (COMMA condintional)*)? COLON statement_list SEMI
 
 if_statement : IF conditional COLON statement_list SEMI (ELSE (if_statement | COLON statement_list SEMI))?
 

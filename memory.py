@@ -2,6 +2,18 @@ from error import *
 from cstoken import *
 
 
+class FunctionData(object):
+    def __init__(self, params_num, default_param_vals, value):
+        self.params_num = params_num
+        self.default_param_vals = default_param_vals
+        self.value = value
+
+    def __str__(self):
+        return f"<FunctionData(params_num = {self.params_num}, default_param_vals = {self.default_param_vals} value = {self.value}, type = {type(self.value)})>"
+
+    __repr__ = __str__
+
+
 class Data(object):
     def __init__(self, value):
         self.value = value

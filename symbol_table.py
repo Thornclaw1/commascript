@@ -2,12 +2,13 @@ from cstoken import *
 
 
 class Symbol():
-    def __init__(self, params_num, value):
+    def __init__(self, params_num, default_value_num, value):
         self.params_num = params_num
+        self.default_value_num = default_value_num
         self.value = value
 
     def __str__(self):
-        return f"<Symbol(params_num = {self.params_num}, value = {self.value})>"
+        return f"<Symbol(params_num = {self.params_num}, default_value_num = {self.default_value_num}, value = {self.value})>"
 
     __repr__ = __str__
 

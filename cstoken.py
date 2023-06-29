@@ -26,6 +26,7 @@ class TokenType(Enum):
     RPAREN = ')'
     LANGLE = '<'
     RANGLE = '>'
+    PARAM_SEP = '||'
     SET_TO = '=>'
     LTHAN = '</'
     GTHAN = '>/'

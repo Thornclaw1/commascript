@@ -119,12 +119,13 @@ class UnaryOp(AST):
 
 
 class VarDecl(AST):
-    def __init__(self, params_num, value):
+    def __init__(self, params_num, default_param_vals, value):
         self.params_num = params_num
+        self.default_param_vals = default_param_vals
         self.value = value
 
     def __str__(self):
-        return f"VarDecl({self.params_num}, {self.value})"
+        return f"VarDecl({self.params_num}, {self.default_param_vals}, {self.value})"
     __repr__ = __str__
 
 
@@ -360,7 +361,7 @@ class Parser():
 
     def statement(self):
         token = self.current_token
-        if token.type == TokenType.COLON or self.peek().type == TokenType.COLON:
+        if token.type in (TokenType.COLON, TokenType.PARAM_SEP) or self.peek().type in (TokenType.COLON, TokenType.PARAM_SEP):
             return self.function_decl()
         if token.type == TokenType.IF:
             return self.if_statement()
@@ -447,7 +448,7 @@ class Parser():
         return OpenFile(token, file_path, value)
 
     def var_decl(self):
-        return VarDecl(0, self.conditional())
+        return VarDecl(0, [], self.conditional())
 
     def var_set(self):
         token = self.current_token
@@ -466,10 +467,18 @@ class Parser():
         if self.current_token.type == TokenType.INT_CONST:
             params_num = int(self.current_token.value)
             self.eat(TokenType.INT_CONST)
+        default_param_vals = []
+        if self.current_token.type == TokenType.PARAM_SEP:
+            self.eat(TokenType.PARAM_SEP)
+            if self.current_token.type != TokenType.COLON:
+                default_param_vals.append(self.conditional())
+                while self.current_token.type != TokenType.COLON:
+                    self.eat(TokenType.COMMA)
+                    default_param_vals.append(self.conditional())
         self.eat(TokenType.COLON)
         value = self.statement_list(BlockType.FUNCTION)
         self.eat(TokenType.SEMI)
-        return VarDecl(params_num, value)
+        return VarDecl(params_num, default_param_vals, value)
 
     def if_statement(self):
         token = self.current_token
@@ -763,7 +772,7 @@ class Parser():
             try:
                 getattr(builtins, token.value)
                 if allow_var_decl:  # TODO: Look for ways to check if python's built-in function's have return values or not
-                    return VarDecl(0, node)
+                    return VarDecl(0, [], node)
                 return node
             except AttributeError:
                 self.error(ErrorCode.ID_NOT_FOUND, token, f"Python function {token.value}<> does not exist")
@@ -775,7 +784,7 @@ class Parser():
             function = globals()[function_name]
 
             if allow_var_decl and contains_return(function):
-                return VarDecl(0, node)
+                return VarDecl(0, [], node)
             return node
 
     def python_module_function(self):
