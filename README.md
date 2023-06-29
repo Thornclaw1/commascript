@@ -149,10 +149,10 @@ Now you may be wondering what conditional operators you have access to. Here's t
 | --------------------- | :-: |
 | Equal to              |  =  |
 | Not Equal to          | !=  |
-| Less Than             | =-  |
-| Greater Than          | =+  |
-| Less Than or Equal    | =-= |
-| Greater Than or Equal | =+= |
+| Less Than             | </  |
+| Greater Than          | >/  |
+| Less Than or Equal    | <=  |
+| Greater Than or Equal | >=  |
 | And                   |  &  |
 | Or                    | \|  |
 | Not                   |  !  |
@@ -182,7 +182,7 @@ While loops work similarly to if statments, but they run the code inside of the 
 
 ```py
 5,
-?? m0 =+ 0:
+?? m0 >/ 0:
     p<m.0>,
     s.0 => m.0 - 1
 ;
@@ -194,7 +194,7 @@ Now there is quite a lot to digest here, so let's break it down.
 
 On line 1, we start by storing the number 5 in memory.
 
-Line 2 starts with `??`, which is the keyword for while. We then define the conditional, `m0 =+ 0`. This states that the while loop will run as long as the value at the 0th index in memory is greater than 0.
+Line 2 starts with `??`, which is the keyword for while. We then define the conditional, `m0 >/ 0`. This states that the while loop will run as long as the value at the 0th index in memory is greater than 0.
 
 Now line 3 is where it gets more interesting. You'll notice that we have a print function, with the argument of `m.0`. To explain this, you will need to understand how scope works in this language.
 
@@ -339,7 +339,7 @@ Using the keyword `b`, you can break out of both while and for loops. Here's som
 
 ```py
 4,
-?? m0 =+ 0:
+?? m0 >/ 0:
     p<m.0>,
     ? m.0 = 2:
         b
