@@ -477,6 +477,19 @@ Putting `||` after the number of parameters, allows you to add more parameters w
 
 > Like before, omiting the number before `||` is the same as putting a `0`.
 
+The default value can even be obtained from a variable. When doing this, the variable has to presume it is being requested from inside of the functions scope, instead of on the same level as the function. The following code does the same thing as the code shown above, but uses a variable getter to obtain the default value.
+
+```py
+'Hello world!',
+1||m.0:
+    ?/m0:
+        p<m.1>
+    ;
+;,
+m1<5>,
+m1<5,'Hello friend!'>
+```
+
 ---
 
 ## Manipulating Files
