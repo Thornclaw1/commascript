@@ -48,6 +48,8 @@ class TokenType(Enum):
     INT_DIV = '//'
     FLOAT_DIV = '/'
     MOD = "%"
+    PLUS_PLUS = '++'
+    MINUS_MINUS = '--'
     INT_CONST = 'INT_CONST'
     FLOAT_CONST = 'FLOAT_CONST'
     STR_CONST = 'STR_CONST'

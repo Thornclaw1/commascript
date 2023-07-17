@@ -152,11 +152,15 @@ class Interpreter(NodeVisitor):
         return {self.visit(key): self.visit(value) for (key, value) in node.value.items()}
 
     def visit_UnaryOp(self, node):
-        op = node.op.type
-        if op == TokenType.PLUS:
-            return self.visit(node.expr)
-        if op == TokenType.MINUS:
-            return -self.visit(node.expr)
+        expr = self.visit(node.expr)
+        try:
+            op = node.op.type
+            if op == TokenType.PLUS:
+                return expr
+            if op == TokenType.MINUS:
+                return -expr
+        except:
+            self.error(ErrorCode.TYPE_ERROR, node.token, f"Unary '{node.op.value}' not supported for instances of type '{type(expr).__name__}'")
 
     def visit_VarDecl(self, node):
         # Function
@@ -170,7 +174,8 @@ class Interpreter(NodeVisitor):
 
     def visit_VarSet(self, node):
         value = self.visit(node.value)
-        self.current_scope.set(node.scope_depth, node.mem_loc, value)
+        if types := self.current_scope.set(node.scope_depth, node.mem_loc, value, node.add_mode):  # Error: returns both types
+            self.error(ErrorCode.TYPE_ERROR, node.token, f"'+' not supported between instances of '{types[0].__name__}' and '{types[1].__name__}'")
 
     def visit_VarGet(self, node):
         if self.current_python_module != builtins:

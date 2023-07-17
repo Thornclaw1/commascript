@@ -88,6 +88,24 @@ class Lexer():
                     self.column
                 )
 
+            if self.check('++'):
+                self.advance(2)
+                return Token(
+                    TokenType.PLUS_PLUS,
+                    TokenType.PLUS_PLUS.value,
+                    self.line,
+                    self.column
+                )
+
+            if self.check('--'):
+                self.advance(2)
+                return Token(
+                    TokenType.MINUS_MINUS,
+                    TokenType.MINUS_MINUS.value,
+                    self.line,
+                    self.column
+                )
+
             if self.check('<='):
                 self.advance(2)
                 return Token(

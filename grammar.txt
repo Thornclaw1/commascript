@@ -24,7 +24,7 @@ open_file : (FILE_READ | FILE_WRITE | FILE_APPEND) STR_CONST COLON statement_lis
 
 var_decl : conditional
 
-var_set : SET (PERIOD)* INT_CONST SET_TO conditional
+var_set : SET (PERIOD)* INT_CONST ((SET_TO | PLUS | MINUS) conditional | (PLUS_PLUS | MINUS_MINUS))
 
 function_decl : (INT_CONST)? (PARAM_SEP (condintional)? (COMMA condintional)*)? COLON statement_list SEMI
 

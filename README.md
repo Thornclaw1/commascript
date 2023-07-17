@@ -220,6 +220,73 @@ This while loop will run 5 times, each time printing out a number. The output sh
 
 ---
 
+## Changing Variable Values
+
+When it comes to changing the value of previously declared variables, there are 5 different options. All of which start with the same syntax.
+
+Using `s`, the keyword for setting, followed by any number of periods (`.`), and then an integer for the index, tells the program that you want to set the variable in the corresponding scope and index. The number of periods determines how many scopes out of the current scope you want to search. The integer is the index of the value you want from the scopes memory table.
+
+From here is where you have multiple options: `=>`, `+`, `-`, `++`, `--`.
+
+`=>` Allows you to set the value directly.
+
+```py
+0,
+p<m0>,
+# > 0 #
+s0 => 22,
+p<m0>
+# > 22 #
+```
+
+`+` Allows you to set the value to the current value plus another value.
+
+```py
+143,
+p<m0>,
+# > 143 #
+s0 + 20,
+p<m0>
+# > 163 #
+```
+
+`-` Allows you to set the value to the current value minus another value.
+
+```py
+143,
+p<m0>,
+# > 143 #
+s0 - 20,
+p<m0>
+# > 123 #
+```
+
+`++` Will increment the value by `1`.
+
+```py
+3,
+p<m0>,
+# > 3 #
+s0++,
+p<m0>
+# > 4 #
+```
+
+`--` Will decrement the value by `1`.
+
+```py
+19,
+p<m0>,
+# > 19 #
+s0--,
+p<m0>
+# > 18 #
+```
+
+All of the binary operation rules apply so you can use the set `+` to concatenate two strings, but you cannot add an integer to a string. This also means that `++` and `--` only work on integers and floats.
+
+---
+
 ## Collections
 
 If you've ever coded in another language, these should look familiar.

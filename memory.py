@@ -93,13 +93,19 @@ class Memory(object):
             return None
         return self
 
-    def set(self, scope_depth, mem_loc, value):
+    def set(self, scope_depth, mem_loc, value, add_mode):
         self.log(f"Set: m{'.'*scope_depth}{mem_loc}, (Scope name: {self.file_path}: {self.scope_name})")
         if scope_depth > 0:
             if self.enclosing_scope is not None:
-                self.enclosing_scope.set(scope_depth - 1, mem_loc, value)
+                return self.enclosing_scope.set(scope_depth - 1, mem_loc, value, add_mode)
         elif mem_loc < len(self._memory):
-            self._memory[mem_loc].value = value
+            if add_mode:
+                try:
+                    self._memory[mem_loc].value += value
+                except:
+                    return (type(self._memory[mem_loc].value), type(value))
+            else:
+                self._memory[mem_loc].value = value
 
     def import_scope(self, scope):
         try:

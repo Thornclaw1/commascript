@@ -130,14 +130,15 @@ class VarDecl(AST):
 
 
 class VarSet(AST):
-    def __init__(self, token, scope_depth, mem_loc, value):
+    def __init__(self, token, scope_depth, mem_loc, value, add_mode):
         self.token = token
         self.scope_depth = scope_depth
         self.mem_loc = mem_loc
         self.value = value
+        self.add_mode = add_mode
 
     def __str__(self):
-        return f"VarSet(s{'.'*self.scope_depth}{self.mem_loc}, {self.value})"
+        return f"VarSet(s{'.'*self.scope_depth}{self.mem_loc}, {self.value}, add_mode:{self.add_mode})"
 
 
 class VarGet(AST):
@@ -459,8 +460,35 @@ class Parser():
             scope_depth += 1
         mem_loc = self.current_token.value
         self.eat(TokenType.INT_CONST)
-        self.eat(TokenType.SET_TO)
-        return VarSet(token, scope_depth, mem_loc, self.conditional())
+
+        value = None
+        add_mode = True
+
+        if self.current_token.type in (TokenType.SET_TO, TokenType.PLUS, TokenType.MINUS, TokenType.PLUS_PLUS, TokenType.MINUS_MINUS):
+            if self.current_token.type == TokenType.SET_TO:
+                self.eat(TokenType.SET_TO)
+                value = self.conditional()
+                add_mode = False
+
+            elif self.current_token.type == TokenType.PLUS:
+                self.eat(TokenType.PLUS)
+                value = self.conditional()
+
+            elif self.current_token.type == TokenType.MINUS:
+                self.eat(TokenType.MINUS)
+                value = UnaryOp(Token(TokenType.MINUS, '-'), self.conditional())
+
+            elif self.current_token.type == TokenType.PLUS_PLUS:
+                self.eat(TokenType.PLUS_PLUS)
+                value = Const(Token(TokenType.INT_CONST, 1))
+
+            elif self.current_token.type == TokenType.MINUS_MINUS:
+                self.eat(TokenType.MINUS_MINUS)
+                value = Const(Token(TokenType.INT_CONST, -1))
+        else:
+            self.error(ErrorCode.UNEXPECTED_TOKEN, self.current_token, "Invalid token after set")
+
+        return VarSet(token, scope_depth, mem_loc, value, add_mode)
 
     def function_decl(self):
         params_num = 0
