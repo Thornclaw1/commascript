@@ -182,10 +182,10 @@ class Interpreter(NodeVisitor):
             self.error(ErrorCode.INVALID_VARIABLE, node.token, f'A CommaScript memory getter cannot be used to get variables/functions from a python module')
         var = self.current_scope.get(node.scope_depth, node.mem_loc)
         if not var:
-            self.error(ErrorCode.VARIABLE_MISSING, node.token, f'm{"."*node.scope_depth}{node.mem_loc} seem\'s to have been lost in the darkness that is CommaScript.')
+            self.error(ErrorCode.VARIABLE_MISSING, node.token, f'm{"."*node.scope_depth}{node.mem_loc} seems to have been lost in the darkness that is CommaScript.')
         value = var.value
         # Function
-        if isinstance(value, StatementList):
+        if isinstance(var, FunctionData):
             arg_values = [self.visit(arg) for arg in node.args]
 
             self.function_stack.append(Function())
@@ -204,6 +204,9 @@ class Interpreter(NodeVisitor):
             function = self.function_stack.pop()
             return_value = function.return_value
             return return_value
+        # Macro
+        elif isinstance(var, MacroData):
+            self.visit(value)
         # List, Tuple
         elif isinstance(value, (list, tuple)) and node.indexer:
             index = self.visit(node.indexer)
@@ -220,6 +223,10 @@ class Interpreter(NodeVisitor):
             self.error(ErrorCode.INVALID_INDEXER, node.token, f"'{type(value).__name__}' does not support the use of indexers.")
         else:
             return value
+
+    def visit_MacroDecl(self, node):
+        data = MacroData(node.value)
+        self.current_scope.insert(data)
 
     def visit_Import(self, node):
         if node.from_python:

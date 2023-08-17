@@ -7,6 +7,7 @@ statement_list : statement (COMMA statement)* (COMMA)?
 statement : var_decl
           | var_set
           | function_decl
+          | macro_decl
           | if_statement
           | while_statement
           | for_statement
@@ -15,6 +16,7 @@ statement : var_decl
           | CONTINUE
           | built_in_function
           | SET_TO conditional
+          | NULL SET_TO condintional
           | import_file
           | open_file
 
@@ -24,9 +26,11 @@ open_file : (FILE_READ | FILE_WRITE | FILE_APPEND) STR_CONST COLON statement_lis
 
 var_decl : conditional
 
-var_set : SET (PERIOD)* INT_CONST ((SET_TO | PLUS | MINUS) conditional | (PLUS_PLUS | MINUS_MINUS))
+var_set : SET (PERIOD)* (MINUS)? INT_CONST ((SET_TO | PLUS | MINUS) conditional | (PLUS_PLUS | MINUS_MINUS))
 
 function_decl : (INT_CONST)? (PARAM_SEP (condintional)? (COMMA condintional)*)? COLON statement_list SEMI
+
+macro_decl : RANGLE COLON statement (COMMA statement)* (COMMA)? SEMI
 
 if_statement : IF conditional COLON statement_list SEMI (ELSE (if_statement | COLON statement_list SEMI))?
 
@@ -68,9 +72,9 @@ tuple : LPAREN (condintional)? (COMMA condintional)* (COMMA)? RPAREN
 
 dict : LCURLY (conditional COLON conditional)? (COMMA conditional COLON conditional)* (COMMA)? RCURLY
 
-variable : MEMORY (PERIOD)* INT_CONST (LANGLE (conditional)? (COMMA conditional)* RANGLE | LBRACKET conditional RBRACKET)?
+variable : MEMORY (PERIOD)* (MINUS)? INT_CONST (LANGLE (conditional)? (COMMA conditional)* RANGLE | LBRACKET conditional RBRACKET)?
 
-module : MODULE (PERIOD)* INT_CONST (variable | python_module_function)
+module : MODULE (PERIOD)* (MINUS)? INT_CONST (variable | python_module_function)
 
 built_in_function : (PYTHON)? FUNCTION LANGLE (conditional)? (COMMA conditional)* RANGLE
 

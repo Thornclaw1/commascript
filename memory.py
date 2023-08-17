@@ -14,6 +14,16 @@ class FunctionData(object):
     __repr__ = __str__
 
 
+class MacroData(object):
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return f"<MacroData(value = {self.value})"
+
+    __repr__ = __str__
+
+
 class Data(object):
     def __init__(self, value):
         self.value = value

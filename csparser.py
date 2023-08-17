@@ -29,6 +29,7 @@ class BlockType(Enum):
     CONDITIONAL = 'CONDITIONAL'
     LOOP = 'LOOP'
     OPEN_FILE = 'OPEN_FILE'
+    MACRO = 'MACRO'
 
 
 class StatementList(AST):
@@ -151,6 +152,16 @@ class VarGet(AST):
 
     def __str__(self):
         return f"VarGet(m{'.'*self.scope_depth}{self.mem_loc}, {self.args}, [{self.indexer}])"
+    __repr__ = __str__
+
+
+class MacroDecl(AST):
+    def __init__(self, token, value):
+        self.token = token
+        self.value = value
+
+    def __str__(self):
+        return f"MacroDecl({self.value})"
     __repr__ = __str__
 
 
@@ -362,6 +373,8 @@ class Parser():
 
     def statement(self):
         token = self.current_token
+        if token.type == TokenType.RANGLE:
+            return self.macro_decl()
         if token.type in (TokenType.COLON, TokenType.PARAM_SEP) or self.peek().type in (TokenType.COLON, TokenType.PARAM_SEP):
             return self.function_decl()
         if token.type == TokenType.IF:
@@ -394,6 +407,10 @@ class Parser():
         if token.type == TokenType.SET_TO:
             self.eat(TokenType.SET_TO)
             return self.var_decl()
+        if token.type == TokenType.NULL and self.peek().type == TokenType.SET_TO:
+            self.eat(TokenType.NULL)
+            self.eat(TokenType.SET_TO)
+            return self.conditional()
         if token.type in (TokenType.FILE_READ, TokenType.FILE_WRITE, TokenType.FILE_APPEND):
             return self.open_file()
         return self.var_decl()
@@ -458,8 +475,13 @@ class Parser():
         while self.current_token.type == TokenType.PERIOD:
             self.eat(TokenType.PERIOD)
             scope_depth += 1
-        mem_loc = self.current_token.value
-        self.eat(TokenType.INT_CONST)
+        if self.current_token.type == TokenType.MINUS:
+            self.eat(TokenType.MINUS)
+            mem_loc = -self.current_token.value
+            self.eat(TokenType.INT_CONST)
+        else:
+            mem_loc = self.current_token.value
+            self.eat(TokenType.INT_CONST)
 
         value = None
         add_mode = True
@@ -507,6 +529,14 @@ class Parser():
         value = self.statement_list(BlockType.FUNCTION)
         self.eat(TokenType.SEMI)
         return VarDecl(params_num, default_param_vals, value)
+
+    def macro_decl(self):
+        token = self.current_token
+        self.eat(TokenType.RANGLE)
+        self.eat(TokenType.COLON)
+        value = self.statement_list(BlockType.MACRO)
+        self.eat(TokenType.SEMI)
+        return MacroDecl(token, value)
 
     def if_statement(self):
         token = self.current_token
@@ -739,8 +769,13 @@ class Parser():
         while self.current_token.type == TokenType.PERIOD:
             self.eat(TokenType.PERIOD)
             scope_depth += 1
-        mem_loc = self.current_token.value
-        self.eat(TokenType.INT_CONST)
+        if self.current_token.type == TokenType.MINUS:
+            self.eat(TokenType.MINUS)
+            mem_loc = -self.current_token.value
+            self.eat(TokenType.INT_CONST)
+        else:
+            mem_loc = self.current_token.value
+            self.eat(TokenType.INT_CONST)
         args = []
         indexer = None
         if self.current_token.type == TokenType.LANGLE:
@@ -764,8 +799,13 @@ class Parser():
         while self.current_token.type == TokenType.PERIOD:
             self.eat(TokenType.PERIOD)
             scope_depth += 1
-        mem_loc = self.current_token.value
-        self.eat(TokenType.INT_CONST)
+        if self.current_token.type == TokenType.MINUS:
+            self.eat(TokenType.MINUS)
+            mem_loc = -self.current_token.value
+            self.eat(TokenType.INT_CONST)
+        else:
+            mem_loc = self.current_token.value
+            self.eat(TokenType.INT_CONST)
         if self.current_token.type == TokenType.MEMORY:
             var = self.variable()
         else:

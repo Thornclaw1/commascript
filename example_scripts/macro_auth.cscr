@@ -1,0 +1,27 @@
+# m0 : User Type Object #
+{
+    "John":"Admin",
+    "Joe":"User",
+    "Fred":"User",
+    "Billy":"Admin",
+    "Bob":"User"
+},
+
+# m1 : Authorization Macro #
+>:
+    ? m.0[m0] != m-1:
+        r<"Access Denied">
+    ;
+;,
+
+# m2 : Function That Requires Authorization #
+1:
+    'Admin',    # Declaring what user type is required for this function #
+    m.1,        # Implementing Auth Macro #
+    r<"Access Granted">
+;,
+
+# Looping through all users to see which users can access the data #
+?/ m0:
+    p<m.2<m0>>
+;

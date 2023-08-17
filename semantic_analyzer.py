@@ -105,13 +105,18 @@ class SemanticAnalyzer(NodeVisitor):
         self.current_scope.set(node.scope_depth, node.mem_loc, value)
 
     def visit_VarGet(self, node):
-        symbol = self.current_scope.lookup(node.scope_depth, node.mem_loc)
-        if not symbol:
-            self.error(error_code=ErrorCode.ID_NOT_FOUND, token=node.token, message=f"m{'.'*node.scope_depth}{node.mem_loc} does not exist")
-        if len(node.args) < symbol.params_num or len(node.args) > symbol.params_num + symbol.default_value_num:
-            self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=node.token, message=f"{len(node.args)} {'was' if len(node.args) == 1 else 'were'} passed, but {symbol.params_num} {'was' if symbol.params_num == 1 else 'were'} expected")
+        if self.block_type_stack[-1] != BlockType.MACRO:
+            symbol = self.current_scope.lookup(node.scope_depth, node.mem_loc)
+            if not symbol:
+                self.error(error_code=ErrorCode.ID_NOT_FOUND, token=node.token, message=f"m{'.'*node.scope_depth}{node.mem_loc} does not exist")
+            if len(node.args) < symbol.params_num or len(node.args) > symbol.params_num + symbol.default_value_num:
+                self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=node.token, message=f"{len(node.args)} {'was' if len(node.args) == 1 else 'were'} passed, but {symbol.params_num} {'was' if symbol.params_num == 1 else 'were'} expected")
         for arg in node.args:
             self.visit(arg)
+
+    def visit_MacroDecl(self, node):
+        self.visit(node.value)
+        self.current_scope.insert(Symbol(0, 0, node.value))
 
     def visit_Import(self, node):
         if node.from_python:
@@ -187,16 +192,16 @@ class SemanticAnalyzer(NodeVisitor):
         self.leave_scope()
 
     def visit_Return(self, node):
-        if BlockType.FUNCTION not in self.block_type_stack:
+        if BlockType.FUNCTION not in self.block_type_stack and BlockType.MACRO not in self.block_type_stack:
             self.error(ErrorCode.INVALID_RETURN_STATEMENT, node.token, f'Return Statements should not be declared outside of a function')
         self.visit(node.expr)
 
     def visit_Break(self, node):
-        if BlockType.LOOP not in self.block_type_stack:
+        if BlockType.LOOP not in self.block_type_stack and BlockType.MACRO not in self.block_type_stack:
             self.error(ErrorCode.INVALID_BREAK_STATEMENT, node.token, f'Break Statements should not be declared outside of a loop')
 
     def visit_Continue(self, node):
-        if BlockType.LOOP not in self.block_type_stack:
+        if BlockType.LOOP not in self.block_type_stack and BlockType.MACRO not in self.block_type_stack:
             self.error(ErrorCode.INVALID_CONTINUE_STATEMENT, node.token, f'Continue Statements should not be declared outside of a loop')
 
     def visit_BuiltInFunction(self, node):

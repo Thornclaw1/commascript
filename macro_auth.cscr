@@ -1,0 +1,30 @@
+# m0 : User Type Object #
+{
+    "John":"Admin",
+    "Joe":"User",
+    "Fred":"User",
+    "Billy":"Admin",
+    "Bob":"User"
+},
+
+# m1 : Authorization Function #
+2:
+    ? m.0[m0] = m1:
+        r<T>
+    ;,
+    r<F>
+;,
+
+# m2 : Function That Requires Authorization #
+1:
+    ? m.1<m0, "Admin">:
+        r<"Access Granted">
+    ;e:
+        r<"Access Denied">
+    ;
+;,
+
+# Looping through all users to see which users can access the data #
+?/ m0:
+    p<m.2<m0>>
+;

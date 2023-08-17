@@ -31,6 +31,7 @@ Now you can make a CommaScript file anywhere and run it with the command `cs fil
 | float   | any decimal number       | 52.13, 3.1415     |
 | string  | any string of characters | "Hello", 'World!' |
 | boolean | True or False            | T, F              |
+| null    | Null                     | X                 |
 
 ---
 
@@ -74,7 +75,31 @@ This function then returns the string that the user types in.
 
 Now you may be wondering how we obtain this value and store it in a variable to use later. And that is actually handled automatically! When writing a statement like `2 + 2`, `"Hello"`, any function that has a return value, or pretty much anything else, it will be automatically stored in memory.
 
+> Note: Function calls of functions created in CommaScript will automatically be stored in memeory regardless of whether it has a return value. If there is no return value, it will be set to Null
+
+You can also explicitly tell the program to store a variable using the set (`=>`) operator. Here's an example of that:
+
+```py
+=> 2 + 4,
+=> "Hello World!"
+```
+
+The memory table will function exactly the same, but this can be used to force a variable to be stored when it normally wouldn't, or just to make the code base more readable.
+
+Along with explicitly telling the program to store a variable, you can also tell the program to not store a variable. This is especially useful for macros and custom functions that don't return anything. If you put Null (`X`) in front of the set (`=>`) operator, it will tell the program to not store the result of that statement. Here's an example:
+
+```py
+2:
+    p<m0 + m1 * m0>
+;,
+x => m0<4, 6>
+```
+
+Using this to "discard" the result can help clean up the memory table, and prevent unwanted side-effects. Without the discard in this example, Null would be stored at position 1 right after the function in the memory table.
+
 Now let's get to using the string that the user passed in. Memory is stored in a list of sorts, and to retrieve them, you use the keyword `m` followed by the index of the value you want to retrieve. So to obtain our inputed string, we will use the following syntax `m0`.
+
+> Note: The index can be negative and works like pythons negative index getters for lists, dictionaries, etc. The syntax is no different, just put a minus sign (`-`) before the index like so: `m-1`. Using `m-1` will get the last stored variable, `m-2`, the second to last stored variable, and so on.
 
 Let's print out the string with some added flavor.
 
@@ -556,6 +581,25 @@ The default value can even be obtained from a variable. When doing this, the var
 m1<5>,
 m1<5,'Hello friend!'>
 ```
+
+---
+
+## Macros
+
+Macros are similar to functions, but they run within the scope they are called from instead of their own. They also can't take any parameters. Macros can cause seemingly weird behaviors if you don't fully know how they work. They can access variables, create variables, and pretty much anything else you can do outside of macros, you can do inside macros. They are also somewhat unstable, as they rely on runtime error checking for variable getting, as they have no knowledge on what variables they have access to beforehand.
+
+The syntax of a macro is as follows, a right angle bracket (`>`) followed by a colon (`:`) to start the macro block and then a semicolon (`;`) to close the macro block. Here's an example of a macro that just prints out "Hello World":
+
+```py
+>:
+    p<"Hello World">
+;,
+m0
+```
+
+You can put return, break, and continue statements inside of macros and they will affect the scope from which it is called.
+
+Check the `macro_auth.cscr` example script for a more complex example.
 
 ---
 
