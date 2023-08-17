@@ -1,3 +1,5 @@
+# An alternative to the macro_auth.cscr functionality #
+
 # m0 : User Type Object #
 {
     "John":"Admin",
