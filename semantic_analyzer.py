@@ -15,6 +15,7 @@ class SemanticAnalyzer(NodeVisitor):
         super(SemanticAnalyzer, self).__init__(display_debug_messages)
         self.current_file_path = file_path
         self.current_scope = None
+        self.current_macro_var_count = 0
         self.block_type_stack = []
 
     def enter_scope(self, scope_name):
@@ -88,8 +89,8 @@ class SemanticAnalyzer(NodeVisitor):
 
     def visit_VarDecl(self, node):
         if isinstance(node.value, StatementList):
-            self.enter_scope(f"m{self.current_scope.length() - 1}")
             default_param_values = [self.visit(val) for val in node.default_param_vals]
+            self.enter_scope(f"m{self.current_scope.length() - 1}")
             for _ in range(node.params_num):
                 self.current_scope.insert(Symbol(0, 0, None))
             for val in default_param_values:
@@ -115,8 +116,21 @@ class SemanticAnalyzer(NodeVisitor):
             self.visit(arg)
 
     def visit_MacroDecl(self, node):
+        self.current_macro_var_count = node.params_num
+        for val in node.default_param_vals:
+            self.visit(val)
+            self.current_macro_var_count += 1
         self.visit(node.value)
-        self.current_scope.insert(Symbol(0, 0, node.value))
+        self.current_scope.insert(Symbol(node.params_num, len(node.default_param_vals), node.value))
+        self.current_macro_var_count = 0
+
+    def visit_MacroVarGet(self, node):
+        if self.block_type_stack[-1] != BlockType.MACRO:
+            self.error(error_code=ErrorCode.INVALID_MACRO_VARIABLE, token=node.token, message=f"Macro variable getters may not be used outside of macros.")
+        else:
+            if node.mem_loc >= self.current_macro_var_count or node.mem_loc < -self.current_macro_var_count:
+                print(self.current_macro_var_count)
+                self.error(error_code=ErrorCode.ID_NOT_FOUND, token=node.token, message=f"k{node.mem_loc} does not exist")
 
     def visit_Import(self, node):
         if node.from_python:

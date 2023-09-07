@@ -156,12 +156,25 @@ class VarGet(AST):
 
 
 class MacroDecl(AST):
-    def __init__(self, token, value):
+    def __init__(self, token, params_num, default_param_vals, value):
         self.token = token
+        self.params_num = params_num
+        self.default_param_vals = default_param_vals
         self.value = value
 
     def __str__(self):
-        return f"MacroDecl({self.value})"
+        return f"MacroDecl({self.params_num}, {self.default_param_vals}, {self.value})"
+    __repr__ = __str__
+
+
+class MacroVarGet(AST):
+    def __init__(self, token, mem_loc, indexer):
+        self.token = token
+        self.mem_loc = mem_loc
+        self.indexer = indexer
+
+    def __str__(self):
+        return f"MacroVarGet({self.mem_loc}, [{self.indexer}])"
     __repr__ = __str__
 
 
@@ -533,10 +546,22 @@ class Parser():
     def macro_decl(self):
         token = self.current_token
         self.eat(TokenType.RANGLE)
+        params_num = 0
+        if self.current_token.type == TokenType.INT_CONST:
+            params_num = int(self.current_token.value)
+            self.eat(TokenType.INT_CONST)
+        default_param_vals = []
+        if self.current_token.type == TokenType.PARAM_SEP:
+            self.eat(TokenType.PARAM_SEP)
+            if self.current_token.type != TokenType.COLON:
+                default_param_vals.append(self.conditional())
+                while self.current_token.type != TokenType.COLON:
+                    self.eat(TokenType.COMMA)
+                    default_param_vals.append(self.conditional())
         self.eat(TokenType.COLON)
         value = self.statement_list(BlockType.MACRO)
         self.eat(TokenType.SEMI)
-        return MacroDecl(token, value)
+        return MacroDecl(token, params_num, default_param_vals, value)
 
     def if_statement(self):
         token = self.current_token
@@ -704,6 +729,8 @@ class Parser():
             return node
         elif token.type == TokenType.MEMORY:
             return self.variable()
+        elif token.type == TokenType.MACRO_VAR:
+            return self.macro_var()
         elif token.type == TokenType.MODULE:
             return self.module()
         elif token.type == TokenType.FUNCTION or token.type == TokenType.PYTHON:
@@ -791,6 +818,23 @@ class Parser():
             indexer = self.conditional()
             self.eat(TokenType.RBRACKET)
         return VarGet(token, scope_depth, mem_loc, args, indexer)
+
+    def macro_var(self):
+        token = self.current_token
+        self.eat(TokenType.MACRO_VAR)
+        if self.current_token.type == TokenType.MINUS:
+            self.eat(TokenType.MINUS)
+            mem_loc = -self.current_token.value
+            self.eat(TokenType.INT_CONST)
+        else:
+            mem_loc = self.current_token.value
+            self.eat(TokenType.INT_CONST)
+        indexer = None
+        if self.current_token.type == TokenType.LBRACKET:
+            self.eat(TokenType.LBRACKET)
+            indexer = self.conditional()
+            self.eat(TokenType.RBRACKET)
+        return MacroVarGet(token, mem_loc, indexer)
 
     def module(self):
         token = self.current_token

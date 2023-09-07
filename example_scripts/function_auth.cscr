@@ -10,7 +10,7 @@
 },
 
 # m1 : Authorization Function #
-2:
+1||"Admin":
     ? m.0[m0] = m1:
         r<T>
     ;,
@@ -19,7 +19,7 @@
 
 # m2 : Function That Requires Authorization #
 1:
-    ? m.1<m0, "Admin">:
+    ? m.1<m0>:
         r<"Access Granted">
     ;e:
         r<"Access Denied">

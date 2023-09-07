@@ -569,11 +569,11 @@ Putting `||` after the number of parameters, allows you to add more parameters w
 
 > Like before, omiting the number before `||` is the same as putting a `0`.
 
-The default value can even be obtained from a variable. When doing this, the variable has to presume it is being requested from inside of the functions scope, instead of on the same level as the function. The following code does the same thing as the code shown above, but uses a variable getter to obtain the default value.
+The default value can even be obtained from a variable. The following code does the same thing as the code shown above, but uses a variable getter to obtain the default value.
 
 ```py
 'Hello world!',
-1||m.0:
+1||m0:
     ?/m0:
         p<m.1>
     ;
@@ -598,6 +598,8 @@ m0
 ```
 
 You can put return, break, and continue statements inside of macros and they will affect the scope from which it is called.
+
+Just like functions, Macros can take in parameters, including support for default valued parameters. But in order to access them you have to use the macro specific variable getter `k`. It works exactly the same as `m`, but without scope advancing (`.`). While in the macro, you can access the parameters using `k` without the need to worry about what scope you are in.
 
 Check the `macro_auth.cscr` example script for a more complex example.
 

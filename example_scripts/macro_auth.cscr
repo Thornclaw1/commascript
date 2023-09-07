@@ -8,15 +8,14 @@
 },
 
 # m1 : Authorization Macro #
->:
-    ? m.0[m0] != m-1:
+>||"Admin":
+    ? m.0[m0] != k0:
         r<"Access Denied">
     ;
 ;,
 
 # m2 : Function That Requires Authorization #
 1:
-    'Admin',    # Declaring what user type is required for this function #
     m.1,        # Implementing Auth Macro #
     r<"Access Granted">
 ;,

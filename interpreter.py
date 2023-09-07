@@ -35,6 +35,7 @@ class Interpreter(NodeVisitor):
         super(Interpreter, self).__init__(display_debug_messages)
         self.current_file_path = file_path
         self.current_scope = None
+        self.current_macro_variables = None
         self.function_stack = []
         self.loop_stack = []
         self.current_python_module = builtins
@@ -188,11 +189,11 @@ class Interpreter(NodeVisitor):
         if isinstance(var, FunctionData):
             arg_values = [self.visit(arg) for arg in node.args]
 
-            self.function_stack.append(Function())
-            self.enter_scope(f"m{node.mem_loc}", self.current_scope.get_scope(node.scope_depth))
-
             for default_val in var.default_param_vals[var.params_num - len(arg_values)::]:
                 arg_values.append(self.visit(default_val))
+
+            self.function_stack.append(Function())
+            self.enter_scope(f"m{node.mem_loc}", self.current_scope.get_scope(node.scope_depth))
 
             for arg_val in arg_values:
                 data = Data(arg_val)
@@ -206,27 +207,55 @@ class Interpreter(NodeVisitor):
             return return_value
         # Macro
         elif isinstance(var, MacroData):
+            arg_values = [self.visit(arg) for arg in node.args]
+
+            for default_val in var.default_param_vals[var.params_num - len(arg_values)::]:
+                arg_values.append(self.visit(default_val))
+
+            self.current_macro_variables = arg_values
             self.visit(value)
-        # List, Tuple
+
+            self.current_macro_variables = None
+        # List, Tuple - Get Index
         elif isinstance(value, (list, tuple)) and node.indexer:
             index = self.visit(node.indexer)
-            if not isinstance(index, int) or index < 0 or index >= len(value):
+            val_len = len(value)
+            if not isinstance(index, int) or index < -val_len or index >= val_len:
                 self.error(ErrorCode.INDEX_ERROR, token=node.token, message=f"{index} is out of range of the given {type(value).__name__}")
-            return value[self.visit(node.indexer)]
-        # Dictionary
+            return value[index]
+        # Dictionary - Get Index
         elif isinstance(value, dict) and node.indexer:
             index = self.visit(node.indexer)
             if index not in value:
                 self.error(ErrorCode.INDEX_ERROR, token=node.token, message=f"{index} does not exist in the given dictionary")
-            return value[self.visit(node.indexer)]
+            return value[index]
         elif node.indexer:
             self.error(ErrorCode.INVALID_INDEXER, node.token, f"'{type(value).__name__}' does not support the use of indexers.")
         else:
             return value
 
     def visit_MacroDecl(self, node):
-        data = MacroData(node.value)
+        data = MacroData(node.params_num, node.default_param_vals, node.value)
         self.current_scope.insert(data)
+
+    def visit_MacroVarGet(self, node):
+        value = self.current_macro_variables[node.mem_loc]
+        # List, Tuple - Get Index
+        if isinstance(value, (list, tuple)) and node.indexer:
+            index = self.visit(node.indexer)
+            val_len = len(value)
+            if not isinstance(index, int) or index < -val_len or index >= val_len:
+                self.error(ErrorCode.INDEX_ERROR, token=node.token, message=f"{index} is out of range of the given {type(value).__name__}")
+            return value[index]
+        # Dictionary - Get Index
+        elif isinstance(value, dict) and node.indexer:
+            index = self.visit(node.indexer)
+            if index not in value:
+                self.error(ErrorCode.INDEX_ERROR, token=node.token, message=f"{index} does not exist in the given dictionary")
+            return value[index]
+        elif node.indexer:
+            self.error(ErrorCode.INVALID_INDEXER, node.token, f"'{type(value).__name__}' does not support the use of indexers.")
+        return value
 
     def visit_Import(self, node):
         if node.from_python:

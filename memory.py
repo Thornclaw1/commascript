@@ -15,11 +15,13 @@ class FunctionData(object):
 
 
 class MacroData(object):
-    def __init__(self, value):
+    def __init__(self, params_num, default_param_vals, value):
+        self.params_num = params_num
+        self.default_param_vals = default_param_vals
         self.value = value
 
     def __str__(self):
-        return f"<MacroData(value = {self.value})"
+        return f"<MacroData(params_num = {self.params_num}, default_param_vals = {self.default_param_vals} value = {self.value})"
 
     __repr__ = __str__
 

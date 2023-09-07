@@ -30,7 +30,7 @@ var_set : SET (PERIOD)* (MINUS)? INT_CONST ((SET_TO | PLUS | MINUS) conditional 
 
 function_decl : (INT_CONST)? (PARAM_SEP (condintional)? (COMMA condintional)*)? COLON statement_list SEMI
 
-macro_decl : RANGLE COLON statement (COMMA statement)* (COMMA)? SEMI
+macro_decl : RANGLE (INT_CONST)? (PARAM_SEP (condintional)? (COMMA condintional)*)? COLON statement (COMMA statement)* (COMMA)? SEMI
 
 if_statement : IF conditional COLON statement_list SEMI (ELSE (if_statement | COLON statement_list SEMI))?
 
@@ -62,6 +62,7 @@ factor : PLUS factor
        | dictionary
        | LANGLE conditional RANGLE
        | variable
+       | macro_var
        | module
        | built_in_function
        | NULL
@@ -73,6 +74,8 @@ tuple : LPAREN (condintional)? (COMMA condintional)* (COMMA)? RPAREN
 dict : LCURLY (conditional COLON conditional)? (COMMA conditional COLON conditional)* (COMMA)? RCURLY
 
 variable : MEMORY (PERIOD)* (MINUS)? INT_CONST (LANGLE (conditional)? (COMMA conditional)* RANGLE | LBRACKET conditional RBRACKET)?
+
+macro_var : MACRO_VAR (MINUS)? INT_CONST (LBRACKET conditional RBRACKET)?
 
 module : MODULE (PERIOD)* (MINUS)? INT_CONST (variable | python_module_function)
 

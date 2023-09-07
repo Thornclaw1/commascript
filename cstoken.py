@@ -3,6 +3,7 @@ from enum import Enum
 
 class TokenType(Enum):
     MEMORY = 'M'
+    MACRO_VAR = 'K'
     SET = 'S'  # Set Var
     RETURN = 'R'
     BREAK = 'B'

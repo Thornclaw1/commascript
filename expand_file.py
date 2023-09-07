@@ -3,33 +3,22 @@ import sys
 from condense_file import flatten
 
 
+class StringIterator:
+    def __init__(self, text):
+        self.text = text
+        self.pos = 0
+        self.current_char = text[0]
+
+    def advance(self, amount=1):
+        self.pos += amount
+        self.current_char = self.text[self.pos] if self.pos >= len(self.text) else None
+
+
 def expand(str):
-    indent = 0
-    angle_depth = 0
+    str_iter = StringIterator(str)
     new_str = ""
 
-    # def newline():
-    #     new_str += "\n" + "\t" * indent
-
-    for c in str:
-        if c == '<':
-            angle_depth += 1
-        elif c == '>':
-            angle_depth -= 1
-        elif c == ';':
-            indent -= 1
-            new_str += "\n" + "\t" * indent
-
-        new_str += c
-
-        if c == ':':
-            indent += 1
-            new_str += "\n" + "\t" * indent
-            continue
-        if c == ',':
-            if angle_depth == 0:
-                new_str += "\n" + "\t" * indent
-            continue
+    # New expand code here
 
     return new_str
 
