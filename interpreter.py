@@ -216,14 +216,14 @@ class Interpreter(NodeVisitor):
             self.visit(value)
 
             self.current_macro_variables = None
-        # List, Tuple - Get Index
+        # List, Tuple - Indexed
         elif isinstance(value, (list, tuple)) and node.indexer:
             index = self.visit(node.indexer)
             val_len = len(value)
             if not isinstance(index, int) or index < -val_len or index >= val_len:
                 self.error(ErrorCode.INDEX_ERROR, token=node.token, message=f"{index} is out of range of the given {type(value).__name__}")
             return value[index]
-        # Dictionary - Get Index
+        # Dictionary - Indexed
         elif isinstance(value, dict) and node.indexer:
             index = self.visit(node.indexer)
             if index not in value:
@@ -240,14 +240,14 @@ class Interpreter(NodeVisitor):
 
     def visit_MacroVarGet(self, node):
         value = self.current_macro_variables[node.mem_loc]
-        # List, Tuple - Get Index
+        # List, Tuple - Indexed
         if isinstance(value, (list, tuple)) and node.indexer:
             index = self.visit(node.indexer)
             val_len = len(value)
             if not isinstance(index, int) or index < -val_len or index >= val_len:
                 self.error(ErrorCode.INDEX_ERROR, token=node.token, message=f"{index} is out of range of the given {type(value).__name__}")
             return value[index]
-        # Dictionary - Get Index
+        # Dictionary - Indexed
         elif isinstance(value, dict) and node.indexer:
             index = self.visit(node.indexer)
             if index not in value:

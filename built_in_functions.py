@@ -1,6 +1,7 @@
 import random
 import codecs
 import io
+import time
 
 from error import *
 
@@ -116,3 +117,16 @@ def cs_rf(self, token, file):
         return file.read()
     except:
         self.error(ErrorCode.INVALID_FUNCTION_CALL, token, "Cannot read from a file that is opened for writing")
+
+
+def cs_sl(self, token, secs):
+    if isinstance(secs, (int, float)):
+        time.sleep(secs)
+    else:
+        self.error(ErrorCode.PARAMETER_ERROR, token, f"sl<> takes a float or an int as a parameter, not '{type(secs).__name__}'")
+
+
+def cs_srt(self, token, collection, reverse=False):
+    if not isinstance(collection, list):
+        self.error(ErrorCode.PARAMETER_ERROR, token, f"srt<> takes a list as the first parameter, not '{type(collection).__name__}'")
+    collection.sort(reverse=reverse)

@@ -936,11 +936,40 @@ fr "example.txt":
 
 ---
 
+### sl\<secs>
+
+Sleeps the program for a given amount of seconds.
+
+#### Example
+
+```py
+p<"Before sleep">,
+sl<2>, # Waits for 2 seconds #
+p<"After sleep">
+```
+
+---
+
+### srt\<collection, reverse=False>
+
+Sorts the given list in the direction specified
+
+#### Example
+
+```py
+[3,2,25,23,45,3,3546,2,13,4546,3],
+srt<m0>,
+p<m0>
+# > [2, 2, 3, 3, 3, 13, 23, 25, 45, 3546, 4546] #
+```
+
+---
+
 ## Using Python's built-in functions
 
 Using `^`, you can call all of [python's built-in functions](https://docs.python.org/3/library/functions.html)
 
-> When calling Python's built-in functions, unless they are nested within another statement, they will always store the return value in memory, regardless of whether the function actually returns a value or not. For example, calling Python's print will store None in memory, while calling CommaScript's print will not.
+> When calling Python's built-in functions, unless they are nested within another statement, they will always store the return value in memory, regardless of whether the function actually returns a value or not. For example, calling Python's print will store None in memory, while calling CommaScript's print will not. You can get around this by using the null setter, `x => ^print<"">` (more on this in the 'Getting Input from the User' section).
 
 > This has only been lightly tested, so use with caution
 
