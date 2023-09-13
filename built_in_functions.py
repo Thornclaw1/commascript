@@ -119,14 +119,33 @@ def cs_rf(self, token, file):
         self.error(ErrorCode.INVALID_FUNCTION_CALL, token, "Cannot read from a file that is opened for writing")
 
 
-def cs_sl(self, token, secs):
-    if isinstance(secs, (int, float)):
-        time.sleep(secs)
-    else:
-        self.error(ErrorCode.PARAMETER_ERROR, token, f"sl<> takes a float or an int as a parameter, not '{type(secs).__name__}'")
+def cs_slp(self, token, secs):
+    if not isinstance(secs, (int, float)):
+        self.error(ErrorCode.PARAMETER_ERROR, token, f"Argument passed into slp<> must be an int or float, not '{type(secs).__name__}'")
+    time.sleep(secs)
 
 
 def cs_srt(self, token, collection, reverse=False):
     if not isinstance(collection, list):
         self.error(ErrorCode.PARAMETER_ERROR, token, f"srt<> takes a list as the first parameter, not '{type(collection).__name__}'")
+    if not isinstance(reverse, bool):
+        self.error(ErrorCode.PARAMETER_ERROR, token, f"srt<takes a bool as the second parameter, not '{type(reverse).__name__}'")
     collection.sort(reverse=reverse)
+
+
+def cs_abs(self, token, number):
+    if not isinstance(number, (int, float)):
+        self.error(ErrorCode.PARAMETER_ERROR, token, f"Argument passed into abs<> must be an int or float, not '{type(number).__name__}'")
+    return abs(number)
+
+
+def cs_all(self, token, iterable):
+    if not isinstance(iterable, list):
+        self.error(ErrorCode.PARAMETER_ERROR, token, f"Argument passed into all<> must be a list, not '{type(iterable).__name__}'")
+    return all(iterable)
+
+
+def cs_any(self, token, iterable):
+    if not isinstance(iterable, list):
+        self.error(ErrorCode.PARAMETER_ERROR, token, f"Argument passed into any<> must be a list, not '{type(iterable).__name__}'")
+    return any(iterable)

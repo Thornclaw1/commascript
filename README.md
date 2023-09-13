@@ -936,7 +936,7 @@ fr "example.txt":
 
 ---
 
-### sl\<secs>
+### slp\<secs>
 
 Sleeps the program for a given amount of seconds.
 
@@ -944,7 +944,7 @@ Sleeps the program for a given amount of seconds.
 
 ```py
 p<"Before sleep">,
-sl<2>, # Waits for 2 seconds #
+slp<2>, # Waits for 2 seconds #
 p<"After sleep">
 ```
 
@@ -961,6 +961,47 @@ Sorts the given list in the direction specified
 srt<m0>,
 p<m0>
 # > [2, 2, 3, 3, 3, 13, 23, 25, 45, 3546, 4546] #
+```
+
+---
+
+### abs\<number>
+
+Returns the absolute value of a number. The argument may be an integer, or a float.
+
+#### Example
+
+```py
+-123,
+abs<m0> # 123 #
+```
+
+---
+
+### all\<iterable>
+
+Returns True if all elements of the iterable are true (or if the iterable is empty).
+
+#### Examples
+
+```py
+any<[T, T, T]>, # T #
+any<[T, F, T]>, # F #
+any<[]> # T #
+```
+
+---
+
+### any\<iterable>
+
+Returns True if any element of the iterable is true. If the iterable is empty, it returns False.
+
+#### Examples
+
+```py
+any<[T, F, T]>, # T #
+any<[F, F, F]>, # F #
+any<[]> # F #
 ```
 
 ---
