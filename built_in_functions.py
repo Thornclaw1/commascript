@@ -149,3 +149,21 @@ def cs_any(self, token, iterable):
     if not isinstance(iterable, list):
         self.error(ErrorCode.PARAMETER_ERROR, token, f"Argument passed into any<> must be a list, not '{type(iterable).__name__}'")
     return any(iterable)
+
+
+def cs_upp(self, token, string):
+    if not isinstance(string, str):
+        self.error(ErrorCode.PARAMETER_ERROR, token, f"Argument passed into upp<> must be a string, not '{type(string).__name__}")
+    return string.upper()
+
+
+def cs_low(self, token, string):
+    if not isinstance(string, str):
+        self.error(ErrorCode.PARAMETER_ERROR, token, f"Argument passed into low<> must be a string, not '{type(string).__name__}")
+    return string.lower()
+
+
+def cs_cap(self, token, string):
+    if not isinstance(string, str):
+        self.error(ErrorCode.PARAMETER_ERROR, token, f"Argument passed into cap<> must be a string, not '{type(string).__name__}")
+    return string[0].upper() + string[1:].lower()

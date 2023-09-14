@@ -683,6 +683,16 @@ function_name<arg, ...>
 
 ---
 
+### Method Syntax
+
+```py
+obj.function_name<arg, ...>
+```
+
+You can use any function (including custom made ones, and imported functions) with this syntax instead of the prior. Using this syntax will pass `obj` as the first argument into the function.
+
+---
+
 ### p<\*obj>
 
 Prints out to the screen
@@ -1002,6 +1012,48 @@ Returns True if any element of the iterable is true. If the iterable is empty, i
 any<[T, F, T]>, # T #
 any<[F, F, F]>, # F #
 any<[]> # F #
+```
+
+---
+
+### upp\<string>
+
+Capitalizes all of the letters in the string, and returns the result.
+
+#### Examples
+
+```py
+"Example String",
+p<upp<m0>>
+# > EXAMPLE STRING #
+```
+
+---
+
+### low\<string>
+
+Lowercases all of the letters in the string, and returns the result.
+
+#### Examples
+
+```py
+"exAmpLe STring",
+p<low<m0>>
+# > example string #
+```
+
+---
+
+### cap\<string>
+
+Capitalizes the first letter in the string, lowercases the rest, and returns the result.
+
+#### Examples
+
+```py
+"exAmpLe STring",
+p<cap<m0>>
+# > Example string #
 ```
 
 ---

@@ -49,7 +49,9 @@ expr : term ((PLUS | MINUS) term)*
 
 term : expo ((MUL | INT_DIV | FLOAT_DIV | MOD) expo)*
 
-expo : factor ((EXPO) factor)*
+expo : factor_method ((EXPO) factor_method)*
+
+factor_method : factor (method)*
 
 factor : PLUS factor
        | MINUS factor
@@ -67,6 +69,8 @@ factor : PLUS factor
        | built_in_function
        | NULL
 
+method : PERIOD (variable | built_in_function | module)
+
 list : LBRACKET (conditional)? (COMMA conditional)* (COMMA)? RBRACKET
 
 tuple : LPAREN (condintional)? (COMMA condintional)* (COMMA)? RPAREN
@@ -79,6 +83,6 @@ macro_var : MACRO_VAR (MINUS)? INT_CONST (LBRACKET conditional RBRACKET)?
 
 module : MODULE (PERIOD)* (MINUS)? INT_CONST (variable | python_module_function)
 
-built_in_function : (PYTHON)? FUNCTION LANGLE (conditional)? (COMMA conditional)* RANGLE
+built_in_function : (PYTHON)? FUNCTION (LANGLE (conditional)? (COMMA conditional)* RANGLE)?
 
 python_module_function : FUNCTION (LANGLE (conditional)? (COMMA conditional)* RANGLE)?

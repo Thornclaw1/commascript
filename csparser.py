@@ -685,13 +685,24 @@ class Parser():
         return node
 
     def expo(self):
-        node = self.factor()
+        node = self.factor_method()
 
         while self.current_token.type == TokenType.EXPO:
             token = self.current_token
             self.eat(TokenType.EXPO)
-            node = BinOp(left=node, op=token, right=self.factor())
+            node = BinOp(left=node, op=token, right=self.factor_method())
 
+        return node
+
+    def factor_method(self):
+        node = self.factor()
+        while self.current_token.type == TokenType.PERIOD:
+            method_node = self.method()
+            if isinstance(method_node, ModuleGet):
+                method_node.var_node.args.insert(0, node)
+            else:
+                method_node.args.insert(0, node)
+            node = method_node
         return node
 
     def factor(self):
@@ -740,6 +751,20 @@ class Parser():
             return Null(token)
         else:
             self.error(ErrorCode.UNEXPECTED_TOKEN, self.current_token, f"Unexpected character(s): {self.current_token.value}")
+
+    def method(self):
+        self.eat(TokenType.PERIOD)
+        token = self.current_token
+        node = None
+        if self.current_token.type == TokenType.MEMORY:
+            node = self.variable()
+        elif token.type == TokenType.FUNCTION or token.type == TokenType.PYTHON:
+            node = self.built_in_function()
+        elif token.type == TokenType.MODULE:
+            node = self.module()
+        if not isinstance(node, (VarGet, BuiltInFunction, ModuleGet)):
+            self.error(ErrorCode.TYPE_ERROR, token, f"{type(node).__name__} is not a supported method node")
+        return node
 
     def list(self):
         token = self.current_token
@@ -869,14 +894,15 @@ class Parser():
 
         self.eat(TokenType.FUNCTION)
 
-        self.eat(TokenType.LANGLE)
         args = []
-        if self.current_token.type != TokenType.RANGLE:
-            args.append(self.conditional())
-            while self.current_token.type == TokenType.COMMA:
-                self.eat(TokenType.COMMA)
+        if self.current_token.type == TokenType.LANGLE:
+            self.eat(TokenType.LANGLE)
+            if self.current_token.type != TokenType.RANGLE:
                 args.append(self.conditional())
-        self.eat(TokenType.RANGLE)
+                while self.current_token.type == TokenType.COMMA:
+                    self.eat(TokenType.COMMA)
+                    args.append(self.conditional())
+            self.eat(TokenType.RANGLE)
 
         node = BuiltInFunction(token, args, from_python)
 

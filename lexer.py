@@ -209,7 +209,7 @@ class Lexer():
             result += self.current_char
             self.advance()
 
-        if self.current_char == '.':
+        if self.current_char == '.' and (peeked_char := self.peek()) and peeked_char.isdigit():
             result += self.current_char
             self.advance()
 

@@ -216,8 +216,8 @@ class Interpreter(NodeVisitor):
             self.visit(value)
 
             self.current_macro_variables = None
-        # List, Tuple - Indexed
-        elif isinstance(value, (list, tuple)) and node.indexer:
+        # List, Tuple, String - Indexed
+        elif isinstance(value, (list, tuple, str)) and node.indexer:
             index = self.visit(node.indexer)
             val_len = len(value)
             if not isinstance(index, int) or index < -val_len or index >= val_len:
