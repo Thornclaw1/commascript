@@ -683,13 +683,20 @@ function_name<arg, ...>
 
 ---
 
-### Method Syntax
+### Dot Notation Syntax
 
 ```py
 obj.function_name<arg, ...>
 ```
 
 You can use any function (including custom made ones, and imported functions) with this syntax instead of the prior. Using this syntax will pass `obj` as the first argument into the function.
+
+For example:
+
+```py
+[1,2,3],
+m0.a<4>
+```
 
 ---
 
@@ -723,14 +730,42 @@ i<"Enter a number: ">
 
 ---
 
-### rnd\<min, max>
+### rnd\<min, max, count=1, unique=False>
 
-Generates a random integer between the two passed arguments
+Generates a random integer between the min and max integers and returns it. If `count` is set to a number higher than 1, it will instead return a list of numbers of `count` length. If `unique` is then set to True, it will ensure the numbers generated are distinct. If more numbers are requested than the range provides and `unique` is set to True, it will just return as many as it can.
 
-#### Example
+#### Examples
 
 ```py
 rnd<4,8> # 6 #
+```
+
+```py
+rnd<1,5,4> # [2,4,2,3] #
+```
+
+```py
+rnd<1,5,4,T> # [3,1,2,4] #
+```
+
+---
+
+### lrnd\<collection, count=1, unique=False>
+
+Returns a random element from the provided list. If `count` is set to a number higher than 1, it will instead return a list of elements of `count` length. If `unique` is then set to True, it will ensure the elements selected are distinct. If more elements are requested than the length of the list and `unique` is set to True, it will just return as many as it can.
+
+#### Examples
+
+```py
+lrnd<[1,4,6,34,2]> # 34 #
+```
+
+```py
+lrnd<[1,4,6,34,2],4> # [4,34,2,4] #
+```
+
+```py
+lrnd<[1,4,6,34,2],4,T> # [4,34,2,1] #
 ```
 
 ---
@@ -831,14 +866,14 @@ Appends, inserts, or modifies an item in a list or dictionary
 
 ```py
 [1,2,3],
-a<m0,4>, # [1,2,3,4] #
-a<m0,2,5> # [1,2,5,3,4] #
+m0.a<4>, # [1,2,3,4] #
+m0.a<2,5> # [1,2,5,3,4] #
 ```
 
 ```py
 {'john':2,'jane':4},
-a<m0,'doe',6>, # {'john':2,'jane':4,'doe':6} #
-a<m0,'john',10> # {'john':10,'jane':4,'doe':6} #
+m0.a<'doe',6>, # {'john':2,'jane':4,'doe':6} #
+m0.a<'john',10> # {'john':10,'jane':4,'doe':6} #
 ```
 
 ---
@@ -851,12 +886,12 @@ Removes an index/key from a list or dictionary
 
 ```py
 ['john','jane','doe'],
-rm<m0,1> # ['john','doe'] #
+m0.rm<1> # ['john','doe'] #
 ```
 
 ```py
 {'john':2,'jane':4,'doe':6},
-rm<m0,'jane'> # {'john':2,'doe':6} #
+m0.rm<'jane'> # {'john':2,'doe':6} #
 ```
 
 ---
@@ -869,12 +904,12 @@ Removes an element/value from a list or dictionary
 
 ```py
 ['john','jane','doe'],
-rmv<m0,'jane'> # ['john','doe'] #
+m0.rmv<'jane'> # ['john','doe'] #
 ```
 
 ```py
 {'john':2,'jane':4,'doe':6},
-rmv<m0,4> # {'john':2,'doe':6} #
+m0.rmv<4> # {'john':2,'doe':6} #
 ```
 
 ---
@@ -920,13 +955,13 @@ Writes the given string to the given file. The given file must be opened in eith
 
 ```py
 fw "example.txt":
-    wf<m0, "Hello, every-nyan. How are you? Fine, thank you."> # Overwriting example.txt's file contents #
+    m0.wf<"Hello, every-nyan. How are you? Fine, thank you."> # Overwriting example.txt's file contents #
 ;,
 ```
 
 ```py
 fa "example.txt":
-    wf<m0, "Hello, every-nyan. How are you? Fine, thank you."> # Appending to the end of example.txt's file contents #
+    m0.wf<"Hello, every-nyan. How are you? Fine, thank you."> # Appending to the end of example.txt's file contents #
 ;,
 ```
 
@@ -940,7 +975,7 @@ Gets and returns the given file's contents. The given file must be opened in rea
 
 ```py
 fr "example.txt":
-    rf<m0> # Gets and returns example.txt's file contents
+    m0.rf<> # Gets and returns example.txt's file contents
 ;,
 ```
 
@@ -1054,6 +1089,24 @@ Capitalizes the first letter in the string, lowercases the rest, and returns the
 "exAmpLe STring",
 p<cap<m0>>
 # > Example string #
+```
+
+---
+
+### splt\<string, sep=None, maxsplit=-1>
+
+Separates the string by `sep` (if `None`, it separates by whitespace characters). If `maxsplit` is set, it will only split `maxsplit` times (if `-1`, it has no limit). Returns a list.
+
+#### Examples
+
+```py
+"Hello World!",
+splt<m0> # [Hello, World!] #
+```
+
+```py
+"Martin,48,Dikdi Avenue,Dafdata"
+splt<m0, ','> # [Martin, 48, Dikdi Avenue, Dafdata] #
 ```
 
 ---
