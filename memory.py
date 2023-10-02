@@ -61,10 +61,12 @@ class Memory(object):
             ('Enclosing scope',
                 self.enclosing_scope.scope_name if self.enclosing_scope else None
              ),
-            ('Scope to Return to', self.scope_to_return_to.scope_name if self.scope_to_return_to else None)
+            ('Scope to Return to',
+             self.scope_to_return_to.scope_name if self.scope_to_return_to else None)
         ):
             lines.append('%-19s: %s' % (header_name, header_value))
-        lines.append(f"Imported Files : {', '.join([file_name for file_name in self.imported_file_paths])}")
+        lines.append(
+            f"Imported Files : {', '.join([file_name for file_name in self.imported_file_paths])}")
         h2 = 'Memory contents'
         lines.extend([h2, '-' * len(h2)])
         lines.extend([str(data) for data in self._memory])
@@ -78,7 +80,7 @@ class Memory(object):
         raise InterpreterError(
             error_code=error_code,
             token=token,
-            message=f'{error_code.value} -> {token}'
+            message=f'\u001b[31m{error_code.value} -> {token}\u001b[0m'
         )
 
     def log(self, msg):
@@ -90,7 +92,8 @@ class Memory(object):
         self._memory.append(data)
 
     def get(self, scope_depth, mem_loc):
-        self.log(f'Lookup: m{"."*scope_depth}{mem_loc}, (Scope name: {self.file_path}: {self.scope_name})')
+        self.log(
+            f'Lookup: m{"."*scope_depth}{mem_loc}, (Scope name: {self.file_path}: {self.scope_name})')
         if scope_depth > 0:
             if self.enclosing_scope is not None:
                 return self.enclosing_scope.get(scope_depth - 1, mem_loc)
@@ -106,7 +109,8 @@ class Memory(object):
         return self
 
     def set(self, scope_depth, mem_loc, value, add_mode):
-        self.log(f"Set: m{'.'*scope_depth}{mem_loc}, (Scope name: {self.file_path}: {self.scope_name})")
+        self.log(
+            f"Set: m{'.'*scope_depth}{mem_loc}, (Scope name: {self.file_path}: {self.scope_name})")
         if scope_depth > 0:
             if self.enclosing_scope is not None:
                 return self.enclosing_scope.set(scope_depth - 1, mem_loc, value, add_mode)

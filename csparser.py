@@ -327,7 +327,7 @@ class Parser():
         raise ParserError(
             error_code=error_code,
             token=token,
-            message=f'{error_code.value} -> File: {self.file_path}, Line: {token.line}, Column: {token.column}\n{message}'
+            message=f'\u001b[31m{error_code.value} -> File: {self.file_path}, Line: {token.line}, Column: {token.column}\n{message}\u001b[0m'
         )
 
     def log(self, msg):
@@ -357,7 +357,8 @@ class Parser():
     def parse(self):
         node = self.program()
         if self.current_token.type != TokenType.EOF:
-            self.error(ErrorCode.UNEXPECTED_TOKEN, self.current_token, f"Unexpected character(s) at end of file: {self.current_token.value}")
+            self.error(ErrorCode.UNEXPECTED_TOKEN, self.current_token,
+                       f"Unexpected character(s) at end of file: {self.current_token.value}")
         Parser.imported_files[self.file_path] = node
         return node
 
@@ -416,7 +417,10 @@ class Parser():
         if token.type == TokenType.SET:
             return self.var_set()
         if token.type in (TokenType.FUNCTION, TokenType.PYTHON):
-            return self.built_in_function(allow_var_decl=True)
+            node = self.built_in_function(allow_var_decl=True)
+            if self.current_token.type == TokenType.PERIOD:
+                return self.factor_method(node.value)
+            return node
         if token.type == TokenType.SET_TO:
             self.eat(TokenType.SET_TO)
             return self.var_decl()
@@ -443,13 +447,15 @@ class Parser():
             file_path = file_path + ".cscr" if ".cscr" not in file_path else file_path
 
             if file_path in Parser.imported_files and not Parser.imported_files[file_path]:
-                self.error(ErrorCode.CIRCULAR_IMPORT, token, message=f"importing {file_path} causes a circular import.")
+                self.error(ErrorCode.CIRCULAR_IMPORT, token,
+                           message=f"importing {file_path} causes a circular import.")
 
             try:
                 with open(file_path) as file:
                     lexer = Lexer(file.read())
             except:
-                self.error(error_code=ErrorCode.FILE_NOT_FOUND, token=token, message=f"{file_path} does not exist.")
+                self.error(error_code=ErrorCode.FILE_NOT_FOUND,
+                           token=token, message=f"{file_path} does not exist.")
             parser = Parser(lexer, file_path, self.display_debug_messages)
             self.log('')
             self.log(parser.parse())
@@ -511,7 +517,8 @@ class Parser():
 
             elif self.current_token.type == TokenType.MINUS:
                 self.eat(TokenType.MINUS)
-                value = UnaryOp(Token(TokenType.MINUS, '-'), self.conditional())
+                value = UnaryOp(Token(TokenType.MINUS, '-'),
+                                self.conditional())
 
             elif self.current_token.type == TokenType.PLUS_PLUS:
                 self.eat(TokenType.PLUS_PLUS)
@@ -521,7 +528,8 @@ class Parser():
                 self.eat(TokenType.MINUS_MINUS)
                 value = Const(Token(TokenType.INT_CONST, -1))
         else:
-            self.error(ErrorCode.UNEXPECTED_TOKEN, self.current_token, "Invalid token after set")
+            self.error(ErrorCode.UNEXPECTED_TOKEN,
+                       self.current_token, "Invalid token after set")
 
         return VarSet(token, scope_depth, mem_loc, value, add_mode)
 
@@ -694,8 +702,8 @@ class Parser():
 
         return node
 
-    def factor_method(self):
-        node = self.factor()
+    def factor_method(self, node=None):
+        node = node if node else self.factor()
         while self.current_token.type == TokenType.PERIOD:
             method_node = self.method()
             if isinstance(method_node, ModuleGet):
@@ -750,7 +758,8 @@ class Parser():
             self.eat(TokenType.NULL)
             return Null(token)
         else:
-            self.error(ErrorCode.UNEXPECTED_TOKEN, self.current_token, f"Unexpected character(s): {self.current_token.value}")
+            self.error(ErrorCode.UNEXPECTED_TOKEN, self.current_token,
+                       f"Unexpected character(s): {self.current_token.value}")
 
     def method(self):
         self.eat(TokenType.PERIOD)
@@ -763,7 +772,8 @@ class Parser():
         elif token.type == TokenType.MODULE:
             node = self.module()
         if not isinstance(node, (VarGet, BuiltInFunction, ModuleGet)):
-            self.error(ErrorCode.TYPE_ERROR, token, f"{type(node).__name__} is not a supported method node")
+            self.error(ErrorCode.TYPE_ERROR, token,
+                       f"{type(node).__name__} is not a supported method node")
         return node
 
     def list(self):
@@ -913,12 +923,14 @@ class Parser():
                     return VarDecl(0, [], node)
                 return node
             except AttributeError:
-                self.error(ErrorCode.ID_NOT_FOUND, token, f"Python function {token.value}<> does not exist")
+                self.error(ErrorCode.ID_NOT_FOUND, token,
+                           f"Python function {token.value}<> does not exist")
 
         else:
             function_name = f"cs_{token.value}"
             if function_name not in globals():
-                self.error(ErrorCode.ID_NOT_FOUND, token, f"Function {token.value}<> does not exist")
+                self.error(ErrorCode.ID_NOT_FOUND, token,
+                           f"Function {token.value}<> does not exist")
             function = globals()[function_name]
 
             if allow_var_decl and contains_return(function):

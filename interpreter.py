@@ -55,14 +55,15 @@ class Interpreter(NodeVisitor):
 
     def leave_scope(self):
         self.log(self.current_scope)
-        self.log(f'LEAVE scope: {self.current_scope.file_path}: {self.current_scope.scope_name}' + f' -> {self.current_scope.scope_to_return_to.file_path}: {self.current_scope.scope_to_return_to.scope_name}' if self.current_scope.scope_to_return_to else '')
+        self.log(f'LEAVE scope: {self.current_scope.file_path}: {self.current_scope.scope_name}' +
+                 f' -> {self.current_scope.scope_to_return_to.file_path}: {self.current_scope.scope_to_return_to.scope_name}' if self.current_scope.scope_to_return_to else '')
         self.current_scope = self.current_scope.scope_to_return_to
 
     def error(self, error_code, token, message=''):
         raise InterpreterError(
             error_code=error_code,
             token=token,
-            message=f'{error_code.value} -> File: {self.current_file_path}, Line: {token.line}, Column: {token.column}\n{message}'
+            message=f'\u001b[31m{error_code.value} -> File: {self.current_file_path}, Line: {token.line}, Column: {token.column}\n{message}\u001b[0m'
         )
 
     def log(self, msg):
@@ -89,7 +90,8 @@ class Interpreter(NodeVisitor):
                 self.loop_stack[-1].continuing = True
                 break
             if len(self.function_stack) > 0 and self.function_stack[-1].has_return_value:
-                self.log(f"Leaving {node.block_type} with return value of {self.function_stack[-1].return_value}")
+                self.log(
+                    f"Leaving {node.block_type} with return value of {self.function_stack[-1].return_value}")
                 break
             if len(self.loop_stack) > 0:
                 if self.loop_stack[-1].breaking:
@@ -135,7 +137,8 @@ class Interpreter(NodeVisitor):
             elif op_type == TokenType.GTHAN_OR_EQUAL:
                 return left >= right
         except:
-            self.error(ErrorCode.TYPE_ERROR, node.token, f"'{node.op.value}' not supported between instances of '{type(left).__name__}' and '{type(right).__name__}'")
+            self.error(ErrorCode.TYPE_ERROR, node.token,
+                       f"'{node.op.value}' not supported between instances of '{type(left).__name__}' and '{type(right).__name__}'")
 
     def visit_Const(self, node):
         return node.value
@@ -161,12 +164,14 @@ class Interpreter(NodeVisitor):
             if op == TokenType.MINUS:
                 return -expr
         except:
-            self.error(ErrorCode.TYPE_ERROR, node.token, f"Unary '{node.op.value}' not supported for instances of type '{type(expr).__name__}'")
+            self.error(ErrorCode.TYPE_ERROR, node.token,
+                       f"Unary '{node.op.value}' not supported for instances of type '{type(expr).__name__}'")
 
     def visit_VarDecl(self, node):
         # Function
         if isinstance(node.value, StatementList):
-            data = FunctionData(node.params_num, node.default_param_vals, node.value)
+            data = FunctionData(
+                node.params_num, node.default_param_vals, node.value)
             self.current_scope.insert(data)
         else:
             value = self.visit(node.value)
@@ -175,15 +180,19 @@ class Interpreter(NodeVisitor):
 
     def visit_VarSet(self, node):
         value = self.visit(node.value)
-        if types := self.current_scope.set(node.scope_depth, node.mem_loc, value, node.add_mode):  # Error: returns both types
-            self.error(ErrorCode.TYPE_ERROR, node.token, f"'+' not supported between instances of '{types[0].__name__}' and '{types[1].__name__}'")
+        # Error: returns both types
+        if types := self.current_scope.set(node.scope_depth, node.mem_loc, value, node.add_mode):
+            self.error(ErrorCode.TYPE_ERROR, node.token,
+                       f"'+' not supported between instances of '{types[0].__name__}' and '{types[1].__name__}'")
 
     def visit_VarGet(self, node):
         if self.current_python_module != builtins:
-            self.error(ErrorCode.INVALID_VARIABLE, node.token, f'A CommaScript memory getter cannot be used to get variables/functions from a python module')
+            self.error(ErrorCode.INVALID_VARIABLE, node.token,
+                       f'A CommaScript memory getter cannot be used to get variables/functions from a python module')
         var = self.current_scope.get(node.scope_depth, node.mem_loc)
         if not var:
-            self.error(ErrorCode.VARIABLE_MISSING, node.token, f'm{"."*node.scope_depth}{node.mem_loc} seems to have been lost in the darkness that is CommaScript.')
+            self.error(ErrorCode.VARIABLE_MISSING, node.token,
+                       f'm{"."*node.scope_depth}{node.mem_loc} seems to have been lost in the darkness that is CommaScript.')
         value = var.value
         # Function
         if isinstance(var, FunctionData):
@@ -193,7 +202,8 @@ class Interpreter(NodeVisitor):
                 arg_values.append(self.visit(default_val))
 
             self.function_stack.append(Function())
-            self.enter_scope(f"m{node.mem_loc}", self.current_scope.get_scope(node.scope_depth))
+            self.enter_scope(f"m{node.mem_loc}",
+                             self.current_scope.get_scope(node.scope_depth))
 
             for arg_val in arg_values:
                 data = Data(arg_val)
@@ -221,16 +231,19 @@ class Interpreter(NodeVisitor):
             index = self.visit(node.indexer)
             val_len = len(value)
             if not isinstance(index, int) or index < -val_len or index >= val_len:
-                self.error(ErrorCode.INDEX_ERROR, token=node.token, message=f"{index} is out of range of the given {type(value).__name__}")
+                self.error(ErrorCode.INDEX_ERROR, token=node.token,
+                           message=f"{index} is out of range of the given {type(value).__name__}")
             return value[index]
         # Dictionary - Indexed
         elif isinstance(value, dict) and node.indexer:
             index = self.visit(node.indexer)
             if index not in value:
-                self.error(ErrorCode.INDEX_ERROR, token=node.token, message=f"{index} does not exist in the given dictionary")
+                self.error(ErrorCode.INDEX_ERROR, token=node.token,
+                           message=f"{index} does not exist in the given dictionary")
             return value[index]
         elif node.indexer:
-            self.error(ErrorCode.INVALID_INDEXER, node.token, f"'{type(value).__name__}' does not support the use of indexers.")
+            self.error(ErrorCode.INVALID_INDEXER, node.token,
+                       f"'{type(value).__name__}' does not support the use of indexers.")
         else:
             return value
 
@@ -245,22 +258,26 @@ class Interpreter(NodeVisitor):
             index = self.visit(node.indexer)
             val_len = len(value)
             if not isinstance(index, int) or index < -val_len or index >= val_len:
-                self.error(ErrorCode.INDEX_ERROR, token=node.token, message=f"{index} is out of range of the given {type(value).__name__}")
+                self.error(ErrorCode.INDEX_ERROR, token=node.token,
+                           message=f"{index} is out of range of the given {type(value).__name__}")
             return value[index]
         # Dictionary - Indexed
         elif isinstance(value, dict) and node.indexer:
             index = self.visit(node.indexer)
             if index not in value:
-                self.error(ErrorCode.INDEX_ERROR, token=node.token, message=f"{index} does not exist in the given dictionary")
+                self.error(ErrorCode.INDEX_ERROR, token=node.token,
+                           message=f"{index} does not exist in the given dictionary")
             return value[index]
         elif node.indexer:
-            self.error(ErrorCode.INVALID_INDEXER, node.token, f"'{type(value).__name__}' does not support the use of indexers.")
+            self.error(ErrorCode.INVALID_INDEXER, node.token,
+                       f"'{type(value).__name__}' does not support the use of indexers.")
         return value
 
     def visit_Import(self, node):
         if node.from_python:
             if node.file_path not in Memory.imported_scopes:
-                self.current_scope.import_scope(importlib.import_module(node.file_path))
+                self.current_scope.import_scope(
+                    importlib.import_module(node.file_path))
             self.current_scope.add_imported_scope(node.file_path)
             return
 
@@ -268,14 +285,16 @@ class Interpreter(NodeVisitor):
         self.current_file_path = node.file_path
 
         if node.file_path not in Memory.imported_scopes:
-            self.current_scope.import_scope(self.visit(Parser.imported_files[node.file_path]))
+            self.current_scope.import_scope(self.visit(
+                Parser.imported_files[node.file_path]))
 
         self.current_scope.add_imported_scope(node.file_path)
 
         self.current_file_path = current_file_path
 
     def visit_ModuleGet(self, node):
-        module = self.current_scope.get_imported_scope(node.scope_depth, node.mem_loc)
+        module = self.current_scope.get_imported_scope(
+            node.scope_depth, node.mem_loc)
 
         if type(module) is ModuleType:
             self.current_python_module = module
@@ -287,11 +306,13 @@ class Interpreter(NodeVisitor):
             current_file_path = self.current_file_path
             self.current_scope = module
             self.current_file_path = module.file_path
-            self.log(f'ENTER module scope: {self.current_scope.file_path} : {self.current_scope.scope_name}')
+            self.log(
+                f'ENTER module scope: {self.current_scope.file_path} : {self.current_scope.scope_name}')
 
             value = self.visit(node.var_node)
 
-            self.log(f'LEAVE module scope: {self.current_scope.file_path} : {self.current_scope.scope_name} -> {current_scope.file_path} : {current_scope.scope_name}')
+            self.log(
+                f'LEAVE module scope: {self.current_scope.file_path} : {self.current_scope.scope_name} -> {current_scope.file_path} : {current_scope.scope_name}')
             self.current_scope = current_scope
             self.current_file_path = current_file_path
 
@@ -351,7 +372,8 @@ class Interpreter(NodeVisitor):
                         len(self.loop_stack) > 0 and self.loop_stack[-1].breaking):
                     break
         except TypeError:
-            self.error(ErrorCode.TYPE_ERROR, node.token, f"'{type(iter).__name__}' is not iterable")
+            self.error(ErrorCode.TYPE_ERROR, node.token,
+                       f"'{type(iter).__name__}' is not iterable")
         self.loop_stack.pop()
 
     def visit_Return(self, node):
@@ -364,20 +386,24 @@ class Interpreter(NodeVisitor):
         pass
 
     def visit_BuiltInFunction(self, node):
-        function = getattr(self.current_python_module, node.name) if node.from_python else globals()['cs_' + node.name]
+        function = getattr(self.current_python_module,
+                           node.name) if node.from_python else globals()['cs_' + node.name]
         args = [self.visit(arg) for arg in node.args]
         try:
             if node.from_python:
                 return function(*args)
             return function(self, node.token, *args)
-        except TypeError:
-            self.error(ErrorCode.WRONG_PARAMS_NUM, node.token, f"{node.name}<> takes {len(signature(function).parameters) - 2} arguments but {len(args)} were given")
+        except TypeError as e:
+            self.log(e)
+            self.error(ErrorCode.WRONG_PARAMS_NUM, node.token,
+                       f"{node.name}<> takes {len(signature(function).parameters) - 2} arguments but {len(args)} were given")
 
     def visit_GetAttr(self, node):
         try:
             return getattr(self.current_python_module, node.name)
         except:
-            self.error(ErrorCode.INVALID_VARIABLE, node.token, f"'{self.current_python_module}' has no attribute '{node.name}'")
+            self.error(ErrorCode.INVALID_VARIABLE, node.token,
+                       f"'{self.current_python_module}' has no attribute '{node.name}'")
 
     # def visit_PythonModuleFunction(self, node):
     #     function = getattr(self.current_python_module, node.name)

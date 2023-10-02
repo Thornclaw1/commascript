@@ -35,11 +35,12 @@ class SemanticAnalyzer(NodeVisitor):
         self.current_scope = self.current_scope.enclosing_scope
 
     def error(self, error_code, token, message=''):
-        self.log(f"------------- SCOPE WHEN ERROR -------------\n{self.current_scope}\n------------- SCOPE WHEN ERROR -------------")
+        self.log(
+            f"------------- SCOPE WHEN ERROR -------------\n{self.current_scope}\n------------- SCOPE WHEN ERROR -------------")
         raise SemanticError(
             error_code=error_code,
             token=token,
-            message=f'{error_code.value} -> File: {self.current_file_path}, Line: {token.line}, Column: {token.column}\n{message}'
+            message=f'\u001b[31m{error_code.value} -> File: {self.current_file_path}, Line: {token.line}, Column: {token.column}\n{message}\u001b[0m'
         )
 
     def log(self, msg):
@@ -55,10 +56,12 @@ class SemanticAnalyzer(NodeVisitor):
 
     def visit_StatementList(self, node):
         self.block_type_stack.append(node.block_type)
-        self.log(f'ENTER block => stack: {", ".join([block_type.value for block_type in self.block_type_stack])}')
+        self.log(
+            f'ENTER block => stack: {", ".join([block_type.value for block_type in self.block_type_stack])}')
         for child in node.children:
             self.visit(child)
-        self.log(f'LEAVE block => stack: {", ".join([block_type.value for block_type in self.block_type_stack])}')
+        self.log(
+            f'LEAVE block => stack: {", ".join([block_type.value for block_type in self.block_type_stack])}')
         self.block_type_stack.pop()
 
     def visit_BinOp(self, node):
@@ -89,7 +92,8 @@ class SemanticAnalyzer(NodeVisitor):
 
     def visit_VarDecl(self, node):
         if isinstance(node.value, StatementList):
-            default_param_values = [self.visit(val) for val in node.default_param_vals]
+            default_param_values = [self.visit(
+                val) for val in node.default_param_vals]
             self.enter_scope(f"m{self.current_scope.length() - 1}")
             for _ in range(node.params_num):
                 self.current_scope.insert(Symbol(0, 0, None))
@@ -99,7 +103,8 @@ class SemanticAnalyzer(NodeVisitor):
             self.leave_scope()
         else:
             self.visit(node.value)
-        self.current_scope.insert(Symbol(node.params_num, len(node.default_param_vals), node.value))
+        self.current_scope.insert(
+            Symbol(node.params_num, len(node.default_param_vals), node.value))
 
     def visit_VarSet(self, node):
         value = self.visit(node.value)
@@ -109,9 +114,11 @@ class SemanticAnalyzer(NodeVisitor):
         if self.block_type_stack[-1] != BlockType.MACRO:
             symbol = self.current_scope.lookup(node.scope_depth, node.mem_loc)
             if not symbol:
-                self.error(error_code=ErrorCode.ID_NOT_FOUND, token=node.token, message=f"m{'.'*node.scope_depth}{node.mem_loc} does not exist")
+                self.error(error_code=ErrorCode.ID_NOT_FOUND, token=node.token,
+                           message=f"m{'.'*node.scope_depth}{node.mem_loc} does not exist")
             if len(node.args) < symbol.params_num or len(node.args) > symbol.params_num + symbol.default_value_num:
-                self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=node.token, message=f"{len(node.args)} {'was' if len(node.args) == 1 else 'were'} passed, but {symbol.params_num} {'was' if symbol.params_num == 1 else 'were'} expected")
+                self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=node.token,
+                           message=f"{len(node.args)} {'was' if len(node.args) == 1 else 'were'} passed, but {symbol.params_num} {'was' if symbol.params_num == 1 else 'were'} expected")
         for arg in node.args:
             self.visit(arg)
 
@@ -121,16 +128,19 @@ class SemanticAnalyzer(NodeVisitor):
             self.visit(val)
             self.current_macro_var_count += 1
         self.visit(node.value)
-        self.current_scope.insert(Symbol(node.params_num, len(node.default_param_vals), node.value))
+        self.current_scope.insert(
+            Symbol(node.params_num, len(node.default_param_vals), node.value))
         self.current_macro_var_count = 0
 
     def visit_MacroVarGet(self, node):
         if self.block_type_stack[-1] != BlockType.MACRO:
-            self.error(error_code=ErrorCode.INVALID_MACRO_VARIABLE, token=node.token, message=f"Macro variable getters may not be used outside of macros.")
+            self.error(error_code=ErrorCode.INVALID_MACRO_VARIABLE, token=node.token,
+                       message=f"Macro variable getters may not be used outside of macros.")
         else:
             if node.mem_loc >= self.current_macro_var_count or node.mem_loc < -self.current_macro_var_count:
                 print(self.current_macro_var_count)
-                self.error(error_code=ErrorCode.ID_NOT_FOUND, token=node.token, message=f"k{node.mem_loc} does not exist")
+                self.error(error_code=ErrorCode.ID_NOT_FOUND, token=node.token,
+                           message=f"k{node.mem_loc} does not exist")
 
     def visit_Import(self, node):
         if node.from_python:
@@ -143,17 +153,20 @@ class SemanticAnalyzer(NodeVisitor):
         self.current_file_path = node.file_path
 
         if node.file_path not in ScopedSymbolTable.imported_scopes:
-            self.current_scope.import_scope(self.visit(Parser.imported_files[node.file_path]))
+            self.current_scope.import_scope(self.visit(
+                Parser.imported_files[node.file_path]))
 
         self.current_scope.add_imported_scope(node.file_path)
 
         self.current_file_path = current_file_path
 
     def visit_ModuleGet(self, node):
-        module = self.current_scope.get_imported_scope(node.scope_depth, node.mem_loc)
+        module = self.current_scope.get_imported_scope(
+            node.scope_depth, node.mem_loc)
 
         if not module:
-            self.error(ErrorCode.MODULE_NOT_FOUND, node.token, message=f"${'.'*node.scope_depth}{node.mem_loc} does not exist")
+            self.error(ErrorCode.MODULE_NOT_FOUND, node.token,
+                       message=f"${'.'*node.scope_depth}{node.mem_loc} does not exist")
 
         if isinstance(module, Import):
             self.visit(node.var_node)
@@ -170,7 +183,8 @@ class SemanticAnalyzer(NodeVisitor):
 
     def visit_OpenFile(self, node):
         if node.file_mode != TokenType.FILE_WRITE and not os.path.isfile(node.file_path):
-            self.error(error_code=ErrorCode.FILE_NOT_FOUND, token=node.token, message=f"{node.file_path} does not exist.")
+            self.error(error_code=ErrorCode.FILE_NOT_FOUND, token=node.token,
+                       message=f"{node.file_path} does not exist.")
         self.enter_scope("openfile-block")
         self.current_scope.insert(Symbol(0, 0, node.file_path))
         self.visit(node.value)
@@ -207,16 +221,19 @@ class SemanticAnalyzer(NodeVisitor):
 
     def visit_Return(self, node):
         if BlockType.FUNCTION not in self.block_type_stack and BlockType.MACRO not in self.block_type_stack:
-            self.error(ErrorCode.INVALID_RETURN_STATEMENT, node.token, f'Return Statements should not be declared outside of a function')
+            self.error(ErrorCode.INVALID_RETURN_STATEMENT, node.token,
+                       f'Return Statements should not be declared outside of a function')
         self.visit(node.expr)
 
     def visit_Break(self, node):
         if BlockType.LOOP not in self.block_type_stack and BlockType.MACRO not in self.block_type_stack:
-            self.error(ErrorCode.INVALID_BREAK_STATEMENT, node.token, f'Break Statements should not be declared outside of a loop')
+            self.error(ErrorCode.INVALID_BREAK_STATEMENT, node.token,
+                       f'Break Statements should not be declared outside of a loop')
 
     def visit_Continue(self, node):
         if BlockType.LOOP not in self.block_type_stack and BlockType.MACRO not in self.block_type_stack:
-            self.error(ErrorCode.INVALID_CONTINUE_STATEMENT, node.token, f'Continue Statements should not be declared outside of a loop')
+            self.error(ErrorCode.INVALID_CONTINUE_STATEMENT, node.token,
+                       f'Continue Statements should not be declared outside of a loop')
 
     def visit_BuiltInFunction(self, node):
         for arg in node.args:
@@ -247,7 +264,8 @@ if __name__ == "__main__":
         tree = parser.parse()
         print(tree)
 
-        semantic_analyzer = SemanticAnalyzer(file_path, display_debug_messages=True)
+        semantic_analyzer = SemanticAnalyzer(
+            file_path, display_debug_messages=True)
         try:
             semantic_analyzer.visit(tree)
         except SemanticError as e:

@@ -1010,6 +1010,26 @@ p<m0>
 
 ---
 
+### srtd\<collection, reverse=False>
+
+Returns a sorted version of the given list in the direction specified
+
+#### Examples
+
+```py
+[3,2,25,23,45,3,3546,2,13,4546,3],
+m0.srtd.p
+# > [2, 2, 3, 3, 3, 13, 23, 25, 45, 3546, 4546] #
+```
+
+```py
+[3,2,25,23,45,3,3546,2,13,4546,3],
+m0.srtd<T>.p
+# > [4546, 3546, 45, 25, 23, 13, 3, 3, 3, 2, 2] #
+```
+
+---
+
 ### abs\<number>
 
 Returns the absolute value of a number. The argument may be an integer, or a float.
@@ -1107,6 +1127,24 @@ splt<m0> # [Hello, World!] #
 ```py
 "Martin,48,Dikdi Avenue,Dafdata"
 splt<m0, ','> # [Martin, 48, Dikdi Avenue, Dafdata] #
+```
+
+---
+
+### join\<collection, sep=" ">
+
+Joins the collection on `sep`.
+
+#### Examples
+
+```py
+["This", "is", "a", "seperated", "string"],
+m0.join # "This is a seperated string" #
+```
+
+```py
+[4,1,5,6,3,1,0],
+m0.join<", "> # "4, 1, 5, 6, 3, 1, 0" #
 ```
 
 ---

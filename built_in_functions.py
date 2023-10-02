@@ -6,6 +6,23 @@ import time
 from error import *
 
 
+def ordinal(n):
+    return "%d%s" % (n, "tsnrhtdd"[(n//10 % 10 != 1)*(n % 10 < 4)*n % 10::4])
+
+
+def join_tuple(tuple):
+    if isinstance(tuple, type):
+        return tuple.__name__
+    return ", ".join([v_type.__name__ for v_type in tuple[:-1]]) + " or " + tuple[-1].__name__
+
+
+def argument_validation(self, token, func_name, args, valid_types):
+    for idx, arg in enumerate(args):
+        if not isinstance(arg, valid_types[idx]):
+            self.error(ErrorCode.PARAMETER_ERROR, token,
+                       f"The {ordinal(idx+1)} argument passed into {func_name}<> must be of type {join_tuple(valid_types[idx])}, not {type(arg).__name__}")
+
+
 def cs_p(self, token, *objs):  # Print
     obj_vals = []
     for obj in objs:
@@ -24,9 +41,8 @@ def cs_i(self, token, prompt):  # Input
 
 
 def cs_rnd(self, token, min, max, count=1, unique=False):  # Random Int
-    if not isinstance(min, int) or not isinstance(max, int):
-        self.error(ErrorCode.PARAMETER_ERROR, token,
-                   f"rnd<> takes two integers as parameters not '{type(min).__name__}' and '{type(max).__name__}'")
+    argument_validation(self, token, "rnd",
+                        (min, max, count, unique), (int, int, int, bool))
     if count > 1:
         val = []
         int_range = list(range(min, max+1))
@@ -41,9 +57,8 @@ def cs_rnd(self, token, min, max, count=1, unique=False):  # Random Int
 
 
 def cs_lrnd(self, token, collection, count=1, unique=False):  # Random element from list/tuple
-    if not isinstance(collection, (list, tuple)):
-        self.error(ErrorCode.PARAMETER_ERROR, token,
-                   f"Argument passed into lrnd<> must be a list or tuple not '{type(collection).__name__}'")
+    argument_validation(self, token, "lrnd",
+                        (collection, count, unique), ((list, tuple), int, bool))
     if count > 1:
         if unique:
             count = len(collection) if count > len(collection) else count
@@ -53,25 +68,31 @@ def cs_lrnd(self, token, collection, count=1, unique=False):  # Random element f
 
 
 def cs_cs(self, token, obj):  # Cast to String
+    argument_validation(self, token, "cs",
+                        (obj,), ((int, float, str, bool),))
     return str(obj)
 
 
 def cs_ci(self, token, obj):  # Cast to Int
+    argument_validation(self, token, "ci",
+                        (obj,), ((int, float, str, bool),))
     return int(obj)
 
 
 def cs_cf(self, token, obj):  # Cast to Float
+    argument_validation(self, token, "cf",
+                        (obj,), ((int, float, str, bool),))
     return float(obj)
 
 
 def cs_cb(self, token, obj):  # Cast to Bool
+    argument_validation(self, token, "cb",
+                        (obj,), ((int, float, str, bool),))
     return bool(obj)
 
 
 def cs_a(self, token, collection, *args):  # Add to collection
-    if not isinstance(collection, (list, dict)):
-        self.error(ErrorCode.PARAMETER_ERROR, token,
-                   f"a<> takes a list or dict as the first parameter, not '{type(collection).__name__}'")
+    argument_validation(self, token, "a", (collection,), ((list, dict),))
 
     if isinstance(collection, list):
         if len(args) == 2:
@@ -94,9 +115,7 @@ def cs_a(self, token, collection, *args):  # Add to collection
 
 
 def cs_rm(self, token, collection, index):
-    if not isinstance(collection, (list, dict)):
-        self.error(ErrorCode.PARAMETER_ERROR, token,
-                   f"rm<> takes a list or dict as the first parameter, not '{type(collection).__name__}'")
+    argument_validation(self, token, "rm", (collection,), ((list, dict),))
 
     if isinstance(collection, list):
         if not isinstance(index, int):
@@ -112,9 +131,7 @@ def cs_rm(self, token, collection, index):
 
 
 def cs_rmv(self, token, collection, value):
-    if not isinstance(collection, (list, dict)):
-        self.error(ErrorCode.PARAMETER_ERROR, token,
-                   f"rmv<> takes a list or dict as the first parameter, not '{type(collection).__name__}'")
+    argument_validation(self, token, "rmv", (collection,), ((list, dict),))
 
     if isinstance(collection, list):
         if value not in collection:
@@ -132,9 +149,8 @@ def cs_rmv(self, token, collection, value):
 
 
 def cs_l(self, token, obj):
-    if not isinstance(obj, (list, dict, tuple, str, int, float)):
-        self.error(ErrorCode.PARAMETER_ERROR, token,
-                   f"Argument passed into l<> must be a list, dict, tuple, string or number, not '{type(obj).__name__}'")
+    argument_validation(self, token, "l", (obj,),
+                        ((list, dict, tuple, str, int, float),))
 
     if isinstance(obj, (int, float)):
         return len(str(obj))
@@ -158,66 +174,58 @@ def cs_rf(self, token, file):
 
 
 def cs_slp(self, token, secs):
-    if not isinstance(secs, (int, float)):
-        self.error(ErrorCode.PARAMETER_ERROR, token,
-                   f"Argument passed into slp<> must be an int or float, not '{type(secs).__name__}'")
+    argument_validation(self, token, "slp", (secs,), ((int, float),))
     time.sleep(secs)
 
 
 def cs_srt(self, token, collection, reverse=False):
-    if not isinstance(collection, list):
-        self.error(ErrorCode.PARAMETER_ERROR, token,
-                   f"srt<> takes a list as the first parameter, not '{type(collection).__name__}'")
-    if not isinstance(reverse, bool):
-        self.error(ErrorCode.PARAMETER_ERROR, token,
-                   f"srt<takes a bool as the second parameter, not '{type(reverse).__name__}'")
+    argument_validation(self, token, "srt",
+                        (collection, reverse), (list, bool))
     collection.sort(reverse=reverse)
 
 
+def cs_srtd(self, token, collection, reverse=False):
+    argument_validation(self, token, "srtd",
+                        (collection, reverse), (list, bool))
+    return sorted(collection, reverse=reverse)
+
+
 def cs_abs(self, token, number):
-    if not isinstance(number, (int, float)):
-        self.error(ErrorCode.PARAMETER_ERROR, token,
-                   f"Argument passed into abs<> must be an int or float, not '{type(number).__name__}'")
+    argument_validation(self, token, "abs", (number,), ((int, float),))
     return abs(number)
 
 
 def cs_all(self, token, iterable):
-    if not isinstance(iterable, list):
-        self.error(ErrorCode.PARAMETER_ERROR, token,
-                   f"Argument passed into all<> must be a list, not '{type(iterable).__name__}'")
+    argument_validation(self, token, "all", (iterable,), (list,))
     return all(iterable)
 
 
 def cs_any(self, token, iterable):
-    if not isinstance(iterable, list):
-        self.error(ErrorCode.PARAMETER_ERROR, token,
-                   f"Argument passed into any<> must be a list, not '{type(iterable).__name__}'")
+    argument_validation(self, token, "any", (iterable,), (list,))
     return any(iterable)
 
 
 def cs_upp(self, token, string):
-    if not isinstance(string, str):
-        self.error(ErrorCode.PARAMETER_ERROR, token,
-                   f"Argument passed into upp<> must be a string, not '{type(string).__name__}")
+    argument_validation(self, token, "upp", (string,), (str,))
     return string.upper()
 
 
 def cs_low(self, token, string):
-    if not isinstance(string, str):
-        self.error(ErrorCode.PARAMETER_ERROR, token,
-                   f"Argument passed into low<> must be a string, not '{type(string).__name__}")
+    argument_validation(self, token, "low", (string,), (str,))
     return string.lower()
 
 
 def cs_cap(self, token, string):
-    if not isinstance(string, str):
-        self.error(ErrorCode.PARAMETER_ERROR, token,
-                   f"Argument passed into cap<> must be a string, not '{type(string).__name__}")
+    argument_validation(self, token, "cap", (string,), (str,))
     return string[0].upper() + string[1:].lower()
 
 
 def cs_splt(self, token, string, sep=None, maxsplit=-1):
-    if not isinstance(string, str):
-        self.error(ErrorCode.PARAMETER_ERROR, token,
-                   f"Argument passed into splt<> must be a string, not '{type(string).__name__}")
+    argument_validation(self, token, "splt", (string,
+                        sep if sep else "", maxsplit), (str, str, int))
     return string.split(sep, maxsplit)
+
+
+def cs_join(self, token, collection, sep=" "):
+    argument_validation(self, token, "join", (collection, sep), (list, str))
+    return sep.join([str(ele) for ele in collection])

@@ -9,10 +9,11 @@ class Lexer():
         self.pos = 0
         self.line = 1
         self.column = 1
-        self.current_char = self.text[self.pos] if self.pos < len(self.text) else None
+        self.current_char = self.text[self.pos] if self.pos < len(
+            self.text) else None
 
     def error(self):
-        s = f"Error on '{self.current_char}' column: {self.pos}"
+        s = f"\u001b[31mError on '{self.current_char}' column: {self.pos}\u001b[0m"
         raise LexerError(message=s)
 
     def advance(self, amount=1):
@@ -202,7 +203,8 @@ class Lexer():
                 return token
 
     def number(self):
-        token = Token(type=None, value=None, line=self.line, column=self.column)
+        token = Token(type=None, value=None,
+                      line=self.line, column=self.column)
 
         result = ''
         while self.current_char and self.current_char.isdigit():
@@ -246,7 +248,8 @@ class Lexer():
         return Token(type=TokenType.BOOL_CONST, value=result, line=line, column=col)
 
     def id(self):
-        token = Token(type=None, value=None, line=self.line, column=self.column)
+        token = Token(type=None, value=None,
+                      line=self.line, column=self.column)
         result = ''
         while self.current_char and self.current_char.isalpha():
             result += self.current_char
