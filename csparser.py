@@ -633,32 +633,27 @@ class Parser():
             not_token = self.current_token
             self.eat(TokenType.NOT)
             invert_result = True
-        if self.current_token.type == TokenType.LANGLE:
-            self.eat(TokenType.LANGLE)
-            node = self.conditional()
-            self.eat(TokenType.RANGLE)
-            return Not(not_token, node) if invert_result else node
-        else:
-            node = self.expr()
 
-            if self.current_token.type in (TokenType.EQUAL, TokenType.NOT_EQUAL, TokenType.LTHAN, TokenType.GTHAN, TokenType.LTHAN_OR_EQUAL, TokenType.GTHAN_OR_EQUAL):
-                token = self.current_token
-                if token.type == TokenType.EQUAL:
-                    self.eat(TokenType.EQUAL)
-                elif token.type == TokenType.NOT_EQUAL:
-                    self.eat(TokenType.NOT_EQUAL)
-                elif token.type == TokenType.LTHAN:
-                    self.eat(TokenType.LTHAN)
-                elif token.type == TokenType.GTHAN:
-                    self.eat(TokenType.GTHAN)
-                elif token.type == TokenType.LTHAN_OR_EQUAL:
-                    self.eat(TokenType.LTHAN_OR_EQUAL)
-                elif token.type == TokenType.GTHAN_OR_EQUAL:
-                    self.eat(TokenType.GTHAN_OR_EQUAL)
+        node = self.expr()
 
-                node = BinOp(left=node, op=token, right=self.expr())
+        if self.current_token.type in (TokenType.EQUAL, TokenType.NOT_EQUAL, TokenType.LTHAN, TokenType.GTHAN, TokenType.LTHAN_OR_EQUAL, TokenType.GTHAN_OR_EQUAL):
+            token = self.current_token
+            if token.type == TokenType.EQUAL:
+                self.eat(TokenType.EQUAL)
+            elif token.type == TokenType.NOT_EQUAL:
+                self.eat(TokenType.NOT_EQUAL)
+            elif token.type == TokenType.LTHAN:
+                self.eat(TokenType.LTHAN)
+            elif token.type == TokenType.GTHAN:
+                self.eat(TokenType.GTHAN)
+            elif token.type == TokenType.LTHAN_OR_EQUAL:
+                self.eat(TokenType.LTHAN_OR_EQUAL)
+            elif token.type == TokenType.GTHAN_OR_EQUAL:
+                self.eat(TokenType.GTHAN_OR_EQUAL)
 
-            return Not(not_token, node) if invert_result else node
+            node = BinOp(left=node, op=token, right=self.expr())
+
+        return Not(not_token, node) if invert_result else node
 
     def expr(self):
         node = self.term()
