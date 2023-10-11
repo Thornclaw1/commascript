@@ -89,13 +89,11 @@ The memory table will function exactly the same, but this can be used to force a
 Along with explicitly telling the program to store a variable, you can also tell the program to not store a variable. This is especially useful for macros and custom functions that don't return anything. If you put Null (`X`) in front of the set (`=>`) operator, it will tell the program to not store the result of that statement. Here's an example:
 
 ```py
-2:
-    p<m0 + m1 * m0>
-;,
-x => m0<4, 6>
+x => 2 + 4,
+x => "Hello World!"
 ```
 
-Using this to "discard" the result can help clean up the memory table, and prevent unwanted side-effects. Without the discard in this example, Null would be stored at position 1 right after the function in the memory table.
+Using this to "discard" the result can help clean up the memory table, and prevent unwanted side-effects. In this case, we are just telling the program to not store the two statements, as variables
 
 Now let's get to using the string that the user passed in. Memory is stored in a list of sorts, and to retrieve them, you use the keyword `m` followed by the index of the value you want to retrieve. So to obtain our inputed string, we will use the following syntax `m0`.
 
@@ -586,7 +584,7 @@ m1<5,'Hello friend!'>
 
 ## Macros
 
-Macros are similar to functions, but they run within the scope they are called from instead of their own. They also can't take any parameters. Macros can cause seemingly weird behaviors if you don't fully know how they work. They can access variables, create variables, and pretty much anything else you can do outside of macros, you can do inside macros. They are also somewhat unstable, as they rely on runtime error checking for variable getting, as they have no knowledge on what variables they have access to beforehand.
+Macros are similar to functions, but they run within the scope they are called from instead of their own. Macros can cause seemingly weird behaviors if you don't fully know how they work. They can access variables, create variables, and pretty much anything else you can do outside of macros, you can do inside macros. They are also somewhat unstable, as they rely on runtime error checking for variable getting, as they have no knowledge on what variables they have access to beforehand.
 
 The syntax of a macro is as follows, a right angle bracket (`>`) followed by a colon (`:`) to start the macro block and then a semicolon (`;`) to close the macro block. Here's an example of a macro that just prints out "Hello World":
 
@@ -666,7 +664,7 @@ main.cscr
 ```py
 @'file1.cscr',
 $0m0<4, 1>, # 9 #
-$0m1 # > Hello World! #
+x => $0m1 # > Hello World! #
 ```
 
 > Note: imports don't get stored in memory, so in the above file, `main.cscr`, only one variable gets stored, which is `9`.
