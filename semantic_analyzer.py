@@ -90,6 +90,10 @@ class SemanticAnalyzer(NodeVisitor):
     def visit_Null(self, node):
         pass
 
+    def visit_FString(self, node):
+        for portion in node.portions:
+            self.visit(portion)
+
     def visit_List(self, node):
         for element in node.value:
             self.visit(element)

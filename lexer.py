@@ -11,6 +11,8 @@ class Lexer():
         self.column = 1
         self.current_char = self.text[self.pos] if self.pos < len(
             self.text) else None
+        self.in_formatted_string = False
+        self.in_f_string_var = False
 
     def error(self):
         s = f"\u001b[31mError on '{self.current_char}' column: {self.pos}\u001b[0m"
@@ -46,8 +48,27 @@ class Lexer():
 
     def get_next_token(self):
         while True:
-            while self.current_char and self.current_char.isspace():
+            if self.current_char == "`":
+                self.in_formatted_string = not self.in_formatted_string
                 self.advance()
+                return Token(
+                    TokenType.BACKTICK,
+                    TokenType.BACKTICK.value,
+                    self.line,
+                    self.column
+                )
+
+            if self.in_formatted_string:
+                if self.current_char == "{":
+                    self.in_f_string_var = True
+                if not self.in_f_string_var:
+                    return self.f_string_portion()
+                if self.current_char == "}":
+                    self.in_f_string_var = False
+
+            if self.current_char and self.current_char.isspace():
+                self.advance()
+                continue
 
             if self.current_char == '#':
                 self.advance()
@@ -234,11 +255,29 @@ class Lexer():
         marker = self.current_char
         self.advance()
         while self.current_char and self.current_char != marker:
+            if self.current_char == "\\":
+                result += self.current_char
+                self.advance()
             result += self.current_char
             self.advance()
         self.advance()
 
         return Token(type=TokenType.STR_CONST, value=result, line=line, column=col)
+
+    def f_string_portion(self):
+        if not self.current_char:
+            return Token(TokenType.EOF, None, self.line, self.column)
+        result = ''
+        col = self.column
+        line = self.line
+        while self.current_char and self.current_char not in "`{":
+            if self.current_char == "\\":
+                result += self.current_char
+                self.advance()
+            result += self.current_char
+            self.advance()
+
+        return Token(TokenType.STR_CONST, result, line, col)
 
     def boolean(self):
         result = self.current_char.upper() == 'T'

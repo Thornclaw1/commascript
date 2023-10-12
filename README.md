@@ -114,6 +114,27 @@ Now if you run this program, it will prompt you for your name, and then print ou
 
 ---
 
+## Formatted Strings
+
+Formatted strings are a type of string that allow you to embed CommaScript expressions inside of them.
+
+To create a formatted string, instead of using quotes (`'`) or double quotes (`"`), you use backticks (`` ` ``).
+
+To embed an expression inside of a formatted string, you surround the expression with curly braces.
+
+Here's an example of a formatted string:
+
+```py
+i<"What's your name? ">,
+p<`Hello {m0}! How are you doing?`>
+```
+
+The formatted string will insert, at `{m0}`, what ever was inputed by the user before printing it out to the console.
+
+There is no limit to the amount of embedded expressions you can put into a formatted string.
+
+---
+
 ## Casting
 
 Casting is fairly simple. You can cast between all four primitive types: string, int, float, and boolean.

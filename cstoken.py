@@ -42,6 +42,7 @@ class TokenType(Enum):
     SEMI = ';'
     PERIOD = '.'
     COMMA = ','
+    BACKTICK = '`'
     PLUS = '+'
     MINUS = '-'
     MUL = '*'

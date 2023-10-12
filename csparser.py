@@ -79,6 +79,16 @@ class Null(AST):
     __repr__ = __str__
 
 
+class FString(AST):
+    def __init__(self, token, portions):
+        self.token = token
+        self.portions = portions
+
+    def __str__(self):
+        return f"FString({self.portions})"
+    __repr__ = __str__
+
+
 class List(AST):
     def __init__(self, token, value):
         self.token = token
@@ -151,7 +161,14 @@ class VarGet(AST):
         self.indexer = indexer
 
     def __str__(self):
-        return f"VarGet(m{'.'*self.scope_depth}{self.mem_loc}, {self.args}, [{self.indexer}])"
+        if self.args and self.indexer:
+            return f"VarGet(m{'.'*self.scope_depth}{self.mem_loc}, args:{self.args}, indexer:[{self.indexer}])"
+        elif self.args:
+            return f"VarGet(m{'.'*self.scope_depth}{self.mem_loc}, args:{self.args})"
+        elif self.indexer:
+            return f"VarGet(m{'.'*self.scope_depth}{self.mem_loc}, indexer:[{self.indexer}])"
+        else:
+            return f"VarGet(m{'.'*self.scope_depth}{self.mem_loc})"
     __repr__ = __str__
 
 
@@ -740,6 +757,8 @@ class Parser():
         elif token.type == TokenType.BOOL_CONST:
             self.eat(TokenType.BOOL_CONST)
             return Const(token)
+        elif token.type == TokenType.BACKTICK:
+            return self.f_string()
         elif token.type == TokenType.LBRACKET:
             return self.list()
         elif token.type == TokenType.LPAREN:
@@ -780,6 +799,23 @@ class Parser():
             self.error(ErrorCode.TYPE_ERROR, token,
                        f"{type(node).__name__} is not a supported method node")
         return node
+
+    def f_string(self):
+        token = self.current_token
+        portions = []
+        self.eat(TokenType.BACKTICK)
+
+        while self.current_token.type != TokenType.BACKTICK:
+            if self.current_token.type == TokenType.LCURLY:
+                self.eat(TokenType.LCURLY)
+                portions.append(self.conditional())
+                self.eat(TokenType.RCURLY)
+            else:
+                portions.append(Const(self.current_token))
+                self.eat(TokenType.STR_CONST)
+
+        self.eat(TokenType.BACKTICK)
+        return FString(token, portions)
 
     def list(self):
         token = self.current_token

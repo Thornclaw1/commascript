@@ -162,6 +162,9 @@ class Interpreter(NodeVisitor):
     def visit_Null(self, node):
         return None
 
+    def visit_FString(self, node):
+        return "".join([str(self.visit(portion)) for portion in node.portions])
+
     def visit_List(self, node):
         return [self.visit(element) for element in node.value]
 

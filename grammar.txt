@@ -59,6 +59,7 @@ factor : PLUS factor
        | FLOAT_CONST
        | STR_CONST
        | BOOL_CONST
+       | f_string
        | list 
        | tuple
        | dictionary
@@ -70,6 +71,8 @@ factor : PLUS factor
        | NULL
 
 method : PERIOD (variable | built_in_function | module)
+
+f_string : BACKTICK (RCURLY (conditional)? LCURLY | STR_CONST)* BACKTICK
 
 list : LBRACKET (conditional)? (COMMA conditional)* (COMMA)? RBRACKET
 
