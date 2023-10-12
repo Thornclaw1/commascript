@@ -93,7 +93,7 @@ x => 2 + 4,
 x => "Hello World!"
 ```
 
-Using this to "discard" the result can help clean up the memory table, and prevent unwanted side-effects. In this case, we are just telling the program to not store the two statements, as variables
+Using this to "discard" the result can help clean up the memory table, and prevent unwanted side-effects. In this case, we are just telling the program to not store the two statements as variables
 
 Now let's get to using the string that the user passed in. Memory is stored in a list of sorts, and to retrieve them, you use the keyword `m` followed by the index of the value you want to retrieve. So to obtain our inputed string, we will use the following syntax `m0`.
 
@@ -912,6 +912,32 @@ m0.rmv<4> # {'john':2,'doe':6} #
 
 ---
 
+### pop\<collection, index/key=-1>
+
+Removes and returns the element/value at the index/key from a list or dictionary. Index defaults to -1 (end of the list, or the integer key of -1 for dictionaries)
+
+#### Examples
+
+```py
+[12,13,43,2],
+p<m0.pop>,
+# > 2 #
+p<m0.pop<1>>,
+# > 13 #
+p<m0>
+# > [12,43] #
+```
+
+```py
+{"Harold":4,"Jill":32,"John":44},
+p<m0.pop<"Jill">>,
+# > 32 #
+p<m0>
+# > {"Harold":4,"John":44} #
+```
+
+---
+
 ### l\<obj>
 
 Returns the length of a list, dictionary, tuple, string, or number
@@ -1037,6 +1063,40 @@ Returns the absolute value of a number. The argument may be an integer, or a flo
 ```py
 -123,
 abs<m0> # 123 #
+```
+
+---
+
+### max\<\*objs>
+
+### max\<iterable>
+
+Returns the item with the highest value.
+
+If the values are strings, an alphabetical comparison is done.
+
+#### Example
+
+```py
+max<2,53,13,65>, # 65 #
+max<[2,53,13,65]> # 65 #
+```
+
+---
+
+### min\<\*objs>
+
+### min\<iterable>
+
+Returns the item with the lowest value.
+
+If the values are strings, an alphabetical comparison is done.
+
+#### Example
+
+```py
+min<4,3,35,23,42>, # 3 #
+min<[4,3,35,23,42]> # 3 #
 ```
 
 ---

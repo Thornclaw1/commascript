@@ -148,6 +148,22 @@ def cs_rmv(self, token, collection, value):
                 break
 
 
+def cs_pop(self, token, collection, index=-1):
+    argument_validation(self, token, "pop", (collection,), ((list, dict),))
+
+    if isinstance(collection, list):
+        if not isinstance(index, int):
+            self.error(ErrorCode.PARAMETER_ERROR, token,
+                       f"pop<> takes an int as the index to pop from, not '{type(index).__name__}'")
+        return collection.pop(index)
+    else:
+        key = index
+        if key not in collection:
+            self.error(ErrorCode.KEY_NOT_FOUND, token,
+                       f"Key '{key}' not found in dictionary: {collection}")
+        return collection.pop(key)
+
+
 def cs_l(self, token, obj):
     argument_validation(self, token, "l", (obj,),
                         ((list, dict, tuple, str, int, float),))
@@ -193,6 +209,18 @@ def cs_srtd(self, token, collection, reverse=False):
 def cs_abs(self, token, number):
     argument_validation(self, token, "abs", (number,), ((int, float),))
     return abs(number)
+
+
+def cs_max(self, token, *objs):
+    if len(objs) > 0 and isinstance(objs[0], (list, tuple)):
+        return max(objs[0])
+    return max(objs)
+
+
+def cs_min(self, token, *objs):
+    if len(objs) > 0 and isinstance(objs[0], (list, tuple)):
+        return min(objs[0])
+    return min(objs)
 
 
 def cs_all(self, token, iterable):

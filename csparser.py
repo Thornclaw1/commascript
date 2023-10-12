@@ -354,6 +354,9 @@ class Parser():
             self.peeked_at_token = self.lexer.get_next_token()
         return self.peeked_at_token
 
+    def contains_return(self, f):
+        return any(isinstance(node, ast.Return) for node in ast.walk(ast.parse(inspect.getsource(f))))
+
     def parse(self):
         node = self.program()
         if self.current_token.type != TokenType.EOF:
@@ -364,7 +367,7 @@ class Parser():
 
     def program(self):
         if self.current_token.type == TokenType.EOF:
-            token = Token(TokenType.FUNCTION, 'P')
+            token = Token(TokenType.FUNCTION, 'p')
             const = Const(Token(TokenType.STR_CONST, "Hello World!"))
             built_in_function = BuiltInFunction(token, [const])
             # var_set = VarDecl(0, built_in_function)
@@ -423,7 +426,7 @@ class Parser():
             return node
         if token.type == TokenType.SET_TO:
             self.eat(TokenType.SET_TO)
-            return self.var_decl()
+            return self.var_decl(force_decl=True)
         if token.type == TokenType.NULL and self.peek().type == TokenType.SET_TO:
             self.eat(TokenType.NULL)
             self.eat(TokenType.SET_TO)
@@ -484,8 +487,15 @@ class Parser():
 
         return OpenFile(token, file_path, value)
 
-    def var_decl(self):
-        return VarDecl(0, [], self.conditional())
+    def var_decl(self, force_decl=False):
+        node = self.conditional()
+        if not force_decl and isinstance(node, BuiltInFunction):
+            function_name = f"cs_{node.name.lower()}"
+            function = globals()[function_name]
+
+            if not self.contains_return(function):
+                return node
+        return VarDecl(0, [], node)
 
     def var_set(self):
         token = self.current_token
@@ -887,9 +897,6 @@ class Parser():
         return ModuleGet(token, scope_depth, mem_loc, var)
 
     def built_in_function(self, allow_var_decl=False):
-        def contains_return(f):
-            return any(isinstance(node, ast.Return) for node in ast.walk(ast.parse(inspect.getsource(f))))
-
         from_python = False
         if self.current_token.type == TokenType.PYTHON:
             self.eat(TokenType.PYTHON)
@@ -922,13 +929,13 @@ class Parser():
                            f"Python function {token.value}<> does not exist")
 
         else:
-            function_name = f"cs_{token.value}"
+            function_name = f"cs_{token.value.lower()}"
             if function_name not in globals():
                 self.error(ErrorCode.ID_NOT_FOUND, token,
                            f"Function {token.value}<> does not exist")
             function = globals()[function_name]
 
-            if allow_var_decl and contains_return(function):
+            if allow_var_decl and self.contains_return(function):
                 return VarDecl(0, [], node)
             return node
 

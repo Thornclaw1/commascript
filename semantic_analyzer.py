@@ -17,6 +17,7 @@ class SemanticAnalyzer(NodeVisitor):
         self.current_scope = None
         self.current_macro_var_count = 0
         self.block_type_stack = []
+        self.in_module_temps = None
 
     def enter_scope(self, scope_name):
         self.log(f"ENTER scope: {scope_name}")
@@ -33,6 +34,21 @@ class SemanticAnalyzer(NodeVisitor):
         self.log(f'LEAVE scope: {self.current_scope.scope_name}')
         self.log(self.current_scope)
         self.current_scope = self.current_scope.enclosing_scope
+
+    def enter_module_scope(self, module):
+        self.in_module_temps = (self.current_scope, self.current_file_path)
+        self.current_scope = module
+        self.current_file_path = module.file_path
+        self.log(
+            f"ENTER module scope: {self.current_scope.file_path} : {self.current_scope.scope_name}")
+
+    def leave_module_scope(self):
+        if self.in_module_temps:
+            self.current_scope = self.in_module_temps[0]
+            self.current_file_path = self.in_module_temps[1]
+            self.log(
+                f'LEAVE module scope: {self.current_scope.file_path} : {self.current_scope.scope_name} -> {self.in_module_temps[0]} : {self.in_module_temps[1]}')
+            self.in_module_temps = None
 
     def error(self, error_code, token, message=''):
         self.log(
@@ -119,6 +135,7 @@ class SemanticAnalyzer(NodeVisitor):
             if len(node.args) < symbol.params_num or len(node.args) > symbol.params_num + symbol.default_value_num:
                 self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=node.token,
                            message=f"{len(node.args)} {'was' if len(node.args) == 1 else 'were'} passed, but {symbol.params_num} {'was' if symbol.params_num == 1 else 'were'} expected")
+        self.leave_module_scope()
         for arg in node.args:
             self.visit(arg)
 
@@ -171,15 +188,11 @@ class SemanticAnalyzer(NodeVisitor):
         if isinstance(module, Import):
             self.visit(node.var_node)
         else:
-            current_scope = self.current_scope
-            current_file_path = self.current_file_path
-            self.current_scope = module
-            self.current_file_path = module.file_path
+            self.enter_module_scope(module)
 
             self.visit(node.var_node)
 
-            self.current_scope = current_scope
-            self.current_file_path = current_file_path
+            self.leave_module_scope()
 
     def visit_OpenFile(self, node):
         if node.file_mode != TokenType.FILE_WRITE and not os.path.isfile(node.file_path):

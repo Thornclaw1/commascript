@@ -39,6 +39,7 @@ class Interpreter(NodeVisitor):
         self.function_stack = []
         self.loop_stack = []
         self.current_python_module = builtins
+        self.in_module_temps = None
 
     def enter_scope(self, scope_name, enclosing_scope=None):
         enclosing_scope = enclosing_scope if enclosing_scope else self.current_scope
@@ -58,6 +59,21 @@ class Interpreter(NodeVisitor):
         self.log(f'LEAVE scope: {self.current_scope.file_path}: {self.current_scope.scope_name}' +
                  f' -> {self.current_scope.scope_to_return_to.file_path}: {self.current_scope.scope_to_return_to.scope_name}' if self.current_scope.scope_to_return_to else '')
         self.current_scope = self.current_scope.scope_to_return_to
+
+    def enter_module_scope(self, module):
+        self.in_module_temps = (self.current_scope, self.current_file_path)
+        self.current_scope = module
+        self.current_file_path = module.file_path
+        self.log(
+            f"ENTER module scope: {self.current_scope.file_path} : {self.current_scope.scope_name}")
+
+    def leave_module_scope(self):
+        if self.in_module_temps:
+            self.current_scope = self.in_module_temps[0]
+            self.current_file_path = self.in_module_temps[1]
+            self.log(
+                f'LEAVE module scope: {self.current_scope.file_path} : {self.current_scope.scope_name} -> {self.in_module_temps[0]} : {self.in_module_temps[1]}')
+            self.in_module_temps = None
 
     def error(self, error_code, token, message=''):
         raise InterpreterError(
@@ -194,12 +210,19 @@ class Interpreter(NodeVisitor):
             self.error(ErrorCode.VARIABLE_MISSING, node.token,
                        f'm{"."*node.scope_depth}{node.mem_loc} seems to have been lost in the darkness that is CommaScript.')
         value = var.value
+        self.current_python_module = builtins
+        self.leave_module_scope()
         # Function
         if isinstance(var, FunctionData):
             arg_values = [self.visit(arg) for arg in node.args]
 
+            scope = self.current_scope
+            self.current_scope = self.current_scope.get_scope(node.scope_depth)
+
             for default_val in var.default_param_vals[var.params_num - len(arg_values)::]:
                 arg_values.append(self.visit(default_val))
+
+            self.current_scope = scope
 
             self.function_stack.append(Function())
             self.enter_scope(f"m{node.mem_loc}",
@@ -302,19 +325,11 @@ class Interpreter(NodeVisitor):
             self.current_python_module = builtins
 
         else:
-            current_scope = self.current_scope
-            current_file_path = self.current_file_path
-            self.current_scope = module
-            self.current_file_path = module.file_path
-            self.log(
-                f'ENTER module scope: {self.current_scope.file_path} : {self.current_scope.scope_name}')
+            self.enter_module_scope(module)
 
             value = self.visit(node.var_node)
 
-            self.log(
-                f'LEAVE module scope: {self.current_scope.file_path} : {self.current_scope.scope_name} -> {current_scope.file_path} : {current_scope.scope_name}')
-            self.current_scope = current_scope
-            self.current_file_path = current_file_path
+            self.leave_module_scope()
 
         return value
 
@@ -387,7 +402,8 @@ class Interpreter(NodeVisitor):
 
     def visit_BuiltInFunction(self, node):
         function = getattr(self.current_python_module,
-                           node.name) if node.from_python else globals()['cs_' + node.name]
+                           node.name) if node.from_python else globals()['cs_' + node.name.lower()]
+        self.current_python_module = builtins
         args = [self.visit(arg) for arg in node.args]
         try:
             if node.from_python:
