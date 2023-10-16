@@ -116,9 +116,9 @@ class SemanticAnalyzer(NodeVisitor):
                 val) for val in node.default_param_vals]
             self.enter_scope(f"m{self.current_scope.length() - 1}")
             for _ in range(node.params_num):
-                self.current_scope.insert(Symbol(0, 0, None))
+                self.current_scope.insert(Symbol(-1, 0, None))
             for val in default_param_values:
-                self.current_scope.insert(Symbol(0, 0, val))
+                self.current_scope.insert(Symbol(-1, 0, val))
             self.visit(node.value)
             self.leave_scope()
         else:
@@ -131,14 +131,15 @@ class SemanticAnalyzer(NodeVisitor):
         self.current_scope.set(node.scope_depth, node.mem_loc, value)
 
     def visit_VarGet(self, node):
-        if self.block_type_stack[-1] != BlockType.MACRO:
+        if self.block_type_stack[-1] != BlockType.MACRO and not node.ref:
             symbol = self.current_scope.lookup(node.scope_depth, node.mem_loc)
             if not symbol:
                 self.error(error_code=ErrorCode.ID_NOT_FOUND, token=node.token,
                            message=f"m{'.'*node.scope_depth}{node.mem_loc} does not exist")
-            if len(node.args) < symbol.params_num or len(node.args) > symbol.params_num + symbol.default_value_num:
-                self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=node.token,
-                           message=f"{len(node.args)} {'was' if len(node.args) == 1 else 'were'} passed, but {symbol.params_num} {'was' if symbol.params_num == 1 else 'were'} expected")
+            if symbol.params_num != -1:
+                if len(node.args) < symbol.params_num or len(node.args) > symbol.params_num + symbol.default_value_num:
+                    self.error(error_code=ErrorCode.WRONG_PARAMS_NUM, token=node.token,
+                               message=f"{len(node.args)} {'was' if len(node.args) == 1 else 'were'} passed, but {symbol.params_num} {'was' if symbol.params_num == 1 else 'were'} expected")
         self.leave_module_scope()
         for arg in node.args:
             self.visit(arg)

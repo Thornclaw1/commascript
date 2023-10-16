@@ -146,7 +146,7 @@ class Lexer():
                     self.column
                 )
 
-            if self.check('</'):
+            if self.check('<\\'):
                 self.advance(2)
                 return Token(
                     TokenType.LTHAN,
@@ -155,7 +155,7 @@ class Lexer():
                     self.column
                 )
 
-            if self.check('>/'):
+            if self.check('>\\'):
                 self.advance(2)
                 return Token(
                     TokenType.GTHAN,

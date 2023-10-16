@@ -1,4 +1,4 @@
-from inspect import signature
+from inspect import signature, isfunction
 from types import ModuleType
 import builtins
 import importlib
@@ -194,7 +194,11 @@ class Interpreter(NodeVisitor):
             self.current_scope.insert(data)
         else:
             value = self.visit(node.value)
-            data = Data(value)
+            if isinstance(value, StatementList):
+                data = FunctionData(
+                    node.params_num, node.default_param_vals, node.value)
+            else:
+                data = Data(value)
             self.current_scope.insert(data)
 
     def visit_VarSet(self, node):
@@ -215,6 +219,8 @@ class Interpreter(NodeVisitor):
         value = var.value
         self.current_python_module = builtins
         self.leave_module_scope()
+        if node.ref:
+            return value
         # Function
         if isinstance(var, FunctionData):
             arg_values = [self.visit(arg) for arg in node.args]
@@ -232,7 +238,10 @@ class Interpreter(NodeVisitor):
                              self.current_scope.get_scope(node.scope_depth))
 
             for arg_val in arg_values:
-                data = Data(arg_val)
+                if isinstance(arg_val, StatementList):
+                    data = FunctionData(0, [], arg_val)
+                else:
+                    data = Data(arg_val)
                 self.current_scope.insert(data)
 
             self.visit(value)
@@ -267,6 +276,8 @@ class Interpreter(NodeVisitor):
                 self.error(ErrorCode.INDEX_ERROR, token=node.token,
                            message=f"{index} does not exist in the given dictionary")
             return value[index]
+        elif isfunction(value):
+            return value(self, node.token, *[self.visit(arg) for arg in node.args])
         elif node.indexer:
             self.error(ErrorCode.INVALID_INDEXER, node.token,
                        f"'{type(value).__name__}' does not support the use of indexers.")
@@ -407,6 +418,8 @@ class Interpreter(NodeVisitor):
         function = getattr(self.current_python_module,
                            node.name) if node.from_python else globals()['cs_' + node.name.lower()]
         self.current_python_module = builtins
+        if node.ref:
+            return function
         args = [self.visit(arg) for arg in node.args]
         try:
             if node.from_python:

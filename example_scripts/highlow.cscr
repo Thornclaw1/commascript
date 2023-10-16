@@ -2,9 +2,9 @@ rnd<1,100>,
 -1,
 ?? m0 != m1:
     s.1 => ci<i<"Guess a number 1 to 100: ">>,
-    ? m.1 </ m.0:
+    ? m.1 <\ m.0:
         p<"Higher">
-    ;e? m.1 >/ m.0:
+    ;e? m.1 >\ m.0:
         p<"Lower">
     ;
 ;,

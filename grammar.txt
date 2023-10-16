@@ -72,7 +72,7 @@ factor : PLUS factor
 
 method : PERIOD (variable | built_in_function | module)
 
-f_string : BACKTICK (RCURLY (conditional)? LCURLY | STR_CONST)* BACKTICK
+f_string : BACKTICK (LCURLY (conditional)? RCURLY | STR_CONST)* BACKTICK
 
 list : LBRACKET (conditional)? (COMMA conditional)* (COMMA)? RBRACKET
 
@@ -80,12 +80,12 @@ tuple : LPAREN (condintional)? (COMMA condintional)* (COMMA)? RPAREN
 
 dict : LCURLY (conditional COLON conditional)? (COMMA conditional COLON conditional)* (COMMA)? RCURLY
 
-variable : MEMORY (PERIOD)* (MINUS)? INT_CONST (LANGLE (conditional)? (COMMA conditional)* RANGLE | LBRACKET conditional RBRACKET)?
+variable : (TILDA)? MEMORY (PERIOD)* (MINUS)? INT_CONST (LANGLE (conditional)? (COMMA conditional)* RANGLE | LBRACKET conditional RBRACKET)?
 
 macro_var : MACRO_VAR (MINUS)? INT_CONST (LBRACKET conditional RBRACKET)?
 
 module : MODULE (PERIOD)* (MINUS)? INT_CONST (variable | python_module_function)
 
-built_in_function : (PYTHON)? FUNCTION (LANGLE (conditional)? (COMMA conditional)* RANGLE)?
+built_in_function : (TILDA)? (PYTHON)? FUNCTION (LANGLE (conditional)? (COMMA conditional)* RANGLE)?
 
-python_module_function : FUNCTION (LANGLE (conditional)? (COMMA conditional)* RANGLE)?
+python_module_function : (TILDA)? FUNCTION (LANGLE (conditional)? (COMMA conditional)* RANGLE)?

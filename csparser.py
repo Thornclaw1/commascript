@@ -153,8 +153,9 @@ class VarSet(AST):
 
 
 class VarGet(AST):
-    def __init__(self, token, scope_depth, mem_loc, args, indexer):
+    def __init__(self, token, ref, scope_depth, mem_loc, args, indexer):
         self.token = token
+        self.ref = ref
         self.scope_depth = scope_depth
         self.mem_loc = mem_loc
         self.args = args
@@ -162,13 +163,13 @@ class VarGet(AST):
 
     def __str__(self):
         if self.args and self.indexer:
-            return f"VarGet(m{'.'*self.scope_depth}{self.mem_loc}, args:{self.args}, indexer:[{self.indexer}])"
+            return f"VarGet({'~'*self.ref}m{'.'*self.scope_depth}{self.mem_loc}, args:{self.args}, indexer:[{self.indexer}])"
         elif self.args:
-            return f"VarGet(m{'.'*self.scope_depth}{self.mem_loc}, args:{self.args})"
+            return f"VarGet({'~'*self.ref}m{'.'*self.scope_depth}{self.mem_loc}, args:{self.args})"
         elif self.indexer:
-            return f"VarGet(m{'.'*self.scope_depth}{self.mem_loc}, indexer:[{self.indexer}])"
+            return f"VarGet({'~'*self.ref}m{'.'*self.scope_depth}{self.mem_loc}, indexer:[{self.indexer}])"
         else:
-            return f"VarGet(m{'.'*self.scope_depth}{self.mem_loc})"
+            return f"VarGet({'~'*self.ref}m{'.'*self.scope_depth}{self.mem_loc})"
     __repr__ = __str__
 
 
@@ -302,14 +303,15 @@ class Continue(AST):
 
 
 class BuiltInFunction(AST):
-    def __init__(self, token, args, from_python=False):
+    def __init__(self, token, ref, args, from_python=False):
         self.token = token
+        self.ref = ref
         self.name = token.value
         self.args = args
         self.from_python = from_python
 
     def __str__(self):
-        return f"BuiltInFunction({'^'*self.from_python}{self.name}, {self.args})"
+        return f"BuiltInFunction({'~'*self.ref}{'^'*self.from_python}{self.name}, {self.args})"
     __repr__ = __str__
 
 
@@ -386,7 +388,7 @@ class Parser():
         if self.current_token.type == TokenType.EOF:
             token = Token(TokenType.FUNCTION, 'p')
             const = Const(Token(TokenType.STR_CONST, "Hello World!"))
-            built_in_function = BuiltInFunction(token, [const])
+            built_in_function = BuiltInFunction(token, False, [const])
             # var_set = VarDecl(0, built_in_function)
             statement_list_node = StatementList(BlockType.PROGRAM)
             statement_list_node.children.append(built_in_function)
@@ -436,7 +438,7 @@ class Parser():
             return self.import_file()
         if token.type == TokenType.SET:
             return self.var_set()
-        if token.type in (TokenType.FUNCTION, TokenType.PYTHON):
+        if token.type in (TokenType.FUNCTION, TokenType.PYTHON) or token.type == TokenType.TILDA and self.peek().type in (TokenType.FUNCTION, TokenType.PYTHON):
             node = self.built_in_function(allow_var_decl=True)
             if self.current_token.type == TokenType.PERIOD:
                 return self.factor_method(node.value)
@@ -770,13 +772,13 @@ class Parser():
             node = self.conditional()
             self.eat(TokenType.RANGLE)
             return node
-        elif token.type == TokenType.MEMORY:
+        elif token.type == TokenType.MEMORY or self.peek().type == TokenType.MEMORY:
             return self.variable()
         elif token.type == TokenType.MACRO_VAR:
             return self.macro_var()
         elif token.type == TokenType.MODULE:
             return self.module()
-        elif token.type == TokenType.FUNCTION or token.type == TokenType.PYTHON:
+        elif token.type in (TokenType.FUNCTION, TokenType.PYTHON) or token.type == TokenType.TILDA and self.peek().type in (TokenType.FUNCTION, TokenType.PYTHON):
             return self.built_in_function()
         elif token.type == TokenType.NULL:
             self.eat(TokenType.NULL)
@@ -789,9 +791,9 @@ class Parser():
         self.eat(TokenType.PERIOD)
         token = self.current_token
         node = None
-        if self.current_token.type == TokenType.MEMORY:
+        if token.type == TokenType.MEMORY or self.peek().type == TokenType.MEMORY:
             node = self.variable()
-        elif token.type == TokenType.FUNCTION or token.type == TokenType.PYTHON:
+        elif token.type in (TokenType.FUNCTION, TokenType.PYTHON) or token.type == TokenType.TILDA and self.peek().type in (TokenType.FUNCTION, TokenType.PYTHON):
             node = self.built_in_function()
         elif token.type == TokenType.MODULE:
             node = self.module()
@@ -867,6 +869,10 @@ class Parser():
 
     def variable(self):
         token = self.current_token
+        ref = False
+        if self.current_token.type == TokenType.TILDA:
+            ref = True
+            self.eat(TokenType.TILDA)
         self.eat(TokenType.MEMORY)
         scope_depth = 0
         while self.current_token.type == TokenType.PERIOD:
@@ -893,7 +899,7 @@ class Parser():
             self.eat(TokenType.LBRACKET)
             indexer = self.conditional()
             self.eat(TokenType.RBRACKET)
-        return VarGet(token, scope_depth, mem_loc, args, indexer)
+        return VarGet(token, ref, scope_depth, mem_loc, args, indexer)
 
     def macro_var(self):
         token = self.current_token
@@ -926,13 +932,17 @@ class Parser():
         else:
             mem_loc = self.current_token.value
             self.eat(TokenType.INT_CONST)
-        if self.current_token.type == TokenType.MEMORY:
+        if self.current_token.type == TokenType.MEMORY or self.peek().type == TokenType.MEMORY:
             var = self.variable()
         else:
             var = self.python_module_function()
         return ModuleGet(token, scope_depth, mem_loc, var)
 
     def built_in_function(self, allow_var_decl=False):
+        ref = False
+        if self.current_token.type == TokenType.TILDA:
+            ref = True
+            self.eat(TokenType.TILDA)
         from_python = False
         if self.current_token.type == TokenType.PYTHON:
             self.eat(TokenType.PYTHON)
@@ -952,7 +962,7 @@ class Parser():
                     args.append(self.conditional())
             self.eat(TokenType.RANGLE)
 
-        node = BuiltInFunction(token, args, from_python)
+        node = BuiltInFunction(token, ref, args, from_python)
 
         if from_python:
             try:
@@ -976,7 +986,11 @@ class Parser():
             return node
 
     def python_module_function(self):
+        ref = False
         token = self.current_token
+        if token.type == TokenType.TILDA:
+            ref = True
+            self.eat(TokenType.TILDA)
         self.eat(TokenType.FUNCTION)
 
         if self.current_token.type == TokenType.LANGLE:
@@ -989,7 +1003,7 @@ class Parser():
                     args.append(self.conditional())
             self.eat(TokenType.RANGLE)
 
-            node = BuiltInFunction(token, args, True)
+            node = BuiltInFunction(token, ref, args, True)
         else:
             node = GetAttr(token)
 
