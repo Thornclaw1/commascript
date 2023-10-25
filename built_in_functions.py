@@ -172,6 +172,18 @@ def cs_pop(self, token, collection, index=-1):
         return collection.pop(key)
 
 
+def cs_kys(self, token, dictionary):
+    argument_validation(self, token, "kys", (dictionary,), (dict,))
+
+    return list(dictionary.keys())
+
+
+def cs_vls(self, token, dictionary):
+    argument_validation(self, token, "vls", (dictionary,), (dict,))
+
+    return list(dictionary.values())
+
+
 def cs_l(self, token, obj):
     argument_validation(self, token, "l", (obj,),
                         ((list, dict, tuple, str, int, float),))
@@ -219,54 +231,54 @@ def cs_srtd(self, token, collection, reverse=False, key=None):
     return sorted(collection, reverse=reverse)
 
 
-def cs_abs(self, token, number):
+def cs_ab(self, token, number):
     argument_validation(self, token, "abs", (number,), ((int, float),))
     return abs(number)
 
 
-def cs_max(self, token, *objs):
+def cs_mx(self, token, *objs):
     if len(objs) > 0 and isinstance(objs[0], (list, tuple)):
         return max(objs[0])
     return max(objs)
 
 
-def cs_min(self, token, *objs):
+def cs_mn(self, token, *objs):
     if len(objs) > 0 and isinstance(objs[0], (list, tuple)):
         return min(objs[0])
     return min(objs)
 
 
-def cs_all(self, token, iterable):
+def cs_al(self, token, iterable):
     argument_validation(self, token, "all", (iterable,), (list,))
     return all(iterable)
 
 
-def cs_any(self, token, iterable):
+def cs_ay(self, token, iterable):
     argument_validation(self, token, "any", (iterable,), (list,))
     return any(iterable)
 
 
-def cs_upp(self, token, string):
+def cs_up(self, token, string):
     argument_validation(self, token, "upp", (string,), (str,))
     return string.upper()
 
 
-def cs_low(self, token, string):
+def cs_lw(self, token, string):
     argument_validation(self, token, "low", (string,), (str,))
     return string.lower()
 
 
-def cs_cap(self, token, string):
+def cs_cp(self, token, string):
     argument_validation(self, token, "cap", (string,), (str,))
     return string[0].upper() + string[1:].lower()
 
 
-def cs_splt(self, token, string, sep=None, maxsplit=-1):
+def cs_sp(self, token, string, sep=None, maxsplit=-1):
     argument_validation(self, token, "splt", (string,
                         sep if sep else "", maxsplit), (str, str, int))
     return string.split(sep, maxsplit)
 
 
-def cs_join(self, token, collection, sep=" "):
+def cs_jn(self, token, collection, sep=" "):
     argument_validation(self, token, "join", (collection, sep), (list, str))
     return sep.join([str(ele) for ele in collection])

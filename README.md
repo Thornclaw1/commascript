@@ -982,6 +982,42 @@ p<m0>
 
 ---
 
+### kys\<dictionary>
+
+Returns the keys of the dictionary as a list
+
+#### Example
+
+```py
+{
+  "jane":23,
+  "john":29,
+  "dave":10
+},
+p<m0.kys>
+# > ['jane', 'john', 'dave'] #
+```
+
+---
+
+### vls\<dictionary>
+
+Returns the values of the dictionary as a list
+
+#### Example
+
+```py
+{
+  "jane":23,
+  "john":29,
+  "dave":10
+},
+p<m0.vls>
+# > [23, 29, 10] #
+```
+
+---
+
 ### l\<obj>
 
 Returns the length of a list, dictionary, tuple, string, or number
@@ -1049,7 +1085,7 @@ fr "example.txt":
 
 ---
 
-### slp\<secs>
+### sl\<secs>
 
 Sleeps the program for a given amount of seconds.
 
@@ -1057,7 +1093,7 @@ Sleeps the program for a given amount of seconds.
 
 ```py
 p<"Before sleep">,
-slp<2>, # Waits for 2 seconds #
+sl<2>, # Waits for 2 seconds #
 p<"After sleep">
 ```
 
@@ -1098,7 +1134,7 @@ m0.srtd<T>.p
 
 ---
 
-### abs\<number>
+### ab\<number>
 
 Returns the absolute value of a number. The argument may be an integer, or a float.
 
@@ -1106,14 +1142,14 @@ Returns the absolute value of a number. The argument may be an integer, or a flo
 
 ```py
 -123,
-abs<m0> # 123 #
+ab<m0> # 123 #
 ```
 
 ---
 
-### max\<\*objs>
+### mx\<\*objs>
 
-### max\<iterable>
+### mx\<iterable>
 
 Returns the item with the highest value.
 
@@ -1122,15 +1158,15 @@ If the values are strings, an alphabetical comparison is done.
 #### Example
 
 ```py
-max<2,53,13,65>, # 65 #
-max<[2,53,13,65]> # 65 #
+mx<2,53,13,65>, # 65 #
+mx<[2,53,13,65]> # 65 #
 ```
 
 ---
 
-### min\<\*objs>
+### mn\<\*objs>
 
-### min\<iterable>
+### mn\<iterable>
 
 Returns the item with the lowest value.
 
@@ -1139,41 +1175,41 @@ If the values are strings, an alphabetical comparison is done.
 #### Example
 
 ```py
-min<4,3,35,23,42>, # 3 #
-min<[4,3,35,23,42]> # 3 #
+mn<4,3,35,23,42>, # 3 #
+mn<[4,3,35,23,42]> # 3 #
 ```
 
 ---
 
-### all\<iterable>
+### al\<iterable>
 
 Returns True if all elements of the iterable are true (or if the iterable is empty).
 
 #### Examples
 
 ```py
-any<[T, T, T]>, # T #
-any<[T, F, T]>, # F #
-any<[]> # T #
+al<[T, T, T]>, # T #
+al<[T, F, T]>, # F #
+al<[]> # T #
 ```
 
 ---
 
-### any\<iterable>
+### ay\<iterable>
 
 Returns True if any element of the iterable is true. If the iterable is empty, it returns False.
 
 #### Examples
 
 ```py
-any<[T, F, T]>, # T #
-any<[F, F, F]>, # F #
-any<[]> # F #
+ay<[T, F, T]>, # T #
+ay<[F, F, F]>, # F #
+ay<[]> # F #
 ```
 
 ---
 
-### upp\<string>
+### up\<string>
 
 Capitalizes all of the letters in the string, and returns the result.
 
@@ -1181,13 +1217,13 @@ Capitalizes all of the letters in the string, and returns the result.
 
 ```py
 "Example String",
-p<upp<m0>>
+p<up<m0>>
 # > EXAMPLE STRING #
 ```
 
 ---
 
-### low\<string>
+### lw\<string>
 
 Lowercases all of the letters in the string, and returns the result.
 
@@ -1195,13 +1231,13 @@ Lowercases all of the letters in the string, and returns the result.
 
 ```py
 "exAmpLe STring",
-p<low<m0>>
+p<lw<m0>>
 # > example string #
 ```
 
 ---
 
-### cap\<string>
+### cp\<string>
 
 Capitalizes the first letter in the string, lowercases the rest, and returns the result.
 
@@ -1209,13 +1245,13 @@ Capitalizes the first letter in the string, lowercases the rest, and returns the
 
 ```py
 "exAmpLe STring",
-p<cap<m0>>
+p<cp<m0>>
 # > Example string #
 ```
 
 ---
 
-### splt\<string, sep=None, maxsplit=-1>
+### sp\<string, sep=None, maxsplit=-1>
 
 Separates the string by `sep` (if `None`, it separates by whitespace characters). If `maxsplit` is set, it will only split `maxsplit` times (if `-1`, it has no limit). Returns a list.
 
@@ -1223,17 +1259,17 @@ Separates the string by `sep` (if `None`, it separates by whitespace characters)
 
 ```py
 "Hello World!",
-splt<m0> # [Hello, World!] #
+sp<m0> # [Hello, World!] #
 ```
 
 ```py
 "Martin,48,Dikdi Avenue,Dafdata"
-splt<m0, ','> # [Martin, 48, Dikdi Avenue, Dafdata] #
+sp<m0, ','> # [Martin, 48, Dikdi Avenue, Dafdata] #
 ```
 
 ---
 
-### join\<collection, sep=" ">
+### jn\<collection, sep=" ">
 
 Joins the collection on `sep`.
 
@@ -1241,12 +1277,12 @@ Joins the collection on `sep`.
 
 ```py
 ["This", "is", "a", "seperated", "string"],
-m0.join # "This is a seperated string" #
+m0.jn # "This is a seperated string" #
 ```
 
 ```py
 [4,1,5,6,3,1,0],
-m0.join<", "> # "4, 1, 5, 6, 3, 1, 0" #
+m0.jn<", "> # "4, 1, 5, 6, 3, 1, 0" #
 ```
 
 ---
