@@ -1063,9 +1063,9 @@ p<"After sleep">
 
 ---
 
-### srt\<collection, reverse=False>
+### srt\<collection, reverse=False, key=None>
 
-Sorts the given list in the direction specified
+Sorts the given list in the direction specified. The key, if specified, is a function that will be called on each list element prior to making comparisons.
 
 #### Example
 
@@ -1078,9 +1078,9 @@ p<m0>
 
 ---
 
-### srtd\<collection, reverse=False>
+### srtd\<collection, reverse=False, key=None>
 
-Returns a sorted version of the given list in the direction specified
+Returns a sorted version of the given list in the direction specified. The key, if specified, is a function that will be called on each list element prior to making comparisons.
 
 #### Examples
 

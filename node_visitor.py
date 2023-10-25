@@ -10,4 +10,6 @@ class NodeVisitor(object):
         return visitor(node)
 
     def generic_visit(self, node):
+        if self.display_debug_messages:
+            print(self.current_scope)
         raise Exception(f'No visit_{type(node).__name__} method')

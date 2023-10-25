@@ -221,15 +221,23 @@ class Interpreter(NodeVisitor):
         self.leave_module_scope()
         if node.ref:
             return value
+        return self.eval_var_value(node, var, value)
+
+    def eval_referenced_function(self, token, function, *params):
+        node = VarGet(token, False, 0, "-ref-func", params[0], None)
+        var = FunctionData(len(params), [], function)
+        return self.eval_var_value(node, var, function, False)
+
+    def eval_var_value(self, node, var, value, visit_args=True):
         # Function
         if isinstance(var, FunctionData):
-            arg_values = [self.visit(arg) for arg in node.args]
+            arg_values = [self.visit(arg) for arg in node.args] if visit_args else node.args
 
             scope = self.current_scope
             self.current_scope = self.current_scope.get_scope(node.scope_depth)
 
             for default_val in var.default_param_vals[var.params_num - len(arg_values)::]:
-                arg_values.append(self.visit(default_val))
+                arg_values.append(self.visit(default_val) if visit_args else default_val)
 
             self.current_scope = scope
 
@@ -252,7 +260,7 @@ class Interpreter(NodeVisitor):
             return return_value
         # Macro
         elif isinstance(var, MacroData):
-            arg_values = [self.visit(arg) for arg in node.args]
+            arg_values = [self.visit(arg) for arg in node.args] if visit_args else node.args
 
             for default_val in var.default_param_vals[var.params_num - len(arg_values)::]:
                 arg_values.append(self.visit(default_val))
@@ -277,7 +285,7 @@ class Interpreter(NodeVisitor):
                            message=f"{index} does not exist in the given dictionary")
             return value[index]
         elif isfunction(value):
-            return value(self, node.token, *[self.visit(arg) for arg in node.args])
+            return value(self, node.token, *[self.visit(arg) for arg in node.args] if visit_args else node.args)
         elif node.indexer:
             self.error(ErrorCode.INVALID_INDEXER, node.token,
                        f"'{type(value).__name__}' does not support the use of indexers.")

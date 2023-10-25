@@ -2,6 +2,7 @@ import random
 import codecs
 import io
 import time
+from inspect import isfunction
 
 from error import *
 
@@ -23,6 +24,12 @@ def argument_validation(self, token, func_name, args, valid_types):
                        f"The {ordinal(idx+1)} argument passed into {func_name}<> must be of type {join_tuple(valid_types[idx])}, not {type(arg).__name__}")
 
 
+def eval_function(self, token, function, *params):
+    if isfunction(function):
+        return function(self, token, *params)
+    return self.eval_referenced_function(token, function, params)
+
+
 def cs_p(self, token, *objs):  # Print
     obj_vals = []
     for obj in objs:
@@ -34,8 +41,9 @@ def cs_p(self, token, *objs):  # Print
 
 
 def cs_i(self, token, prompt):  # Input
+    prompt = str(prompt)
     prompt = codecs.decode(
-        str(prompt), 'unicode_escape') if len(prompt) > 0 else ""
+        prompt, 'unicode_escape') if len(prompt) > 0 else ""
     # prompt = codecs.decode(str(prompt), 'utf-8') if len(prompt) > 0 else ""
     return input(prompt)
 
@@ -194,15 +202,20 @@ def cs_slp(self, token, secs):
     time.sleep(secs)
 
 
-def cs_srt(self, token, collection, reverse=False):
+def cs_srt(self, token, collection, reverse=False, key=None):
     argument_validation(self, token, "srt",
                         (collection, reverse), (list, bool))
-    collection.sort(reverse=reverse)
+    if key:
+        collection.sort(reverse=reverse, key=lambda x: eval_function(self, token, key, x))
+    else:
+        collection.sort(reverse=reverse)
 
 
-def cs_srtd(self, token, collection, reverse=False):
+def cs_srtd(self, token, collection, reverse=False, key=None):
     argument_validation(self, token, "srtd",
                         (collection, reverse), (list, bool))
+    if key:
+        return sorted(collection, reverse=reverse, key=lambda x: eval_function(self, token, key, x))
     return sorted(collection, reverse=reverse)
 
 
